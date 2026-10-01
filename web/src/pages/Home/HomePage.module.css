@@ -4,6 +4,14 @@
   min-height: 100dvh;
 }
 
+/*
+ * Com sugestões abertas, a página ganha folga embaixo para o campo conseguir rolar até o
+ * topo da tela — senão o mapa ocupa o espaço e o teclado do celular cobre a lista.
+ */
+.searching {
+  padding-bottom: 60dvh;
+}
+
 /* Mapa de contexto: ~40% da tela, o resto fica para o formulário ao alcance do polegar. */
 .mapArea {
   position: relative;

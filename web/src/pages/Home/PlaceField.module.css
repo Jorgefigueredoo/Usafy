@@ -1,0 +1,7 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  /* Folga no topo quando a página rola até o campo para mostrar as sugestões. */
+  scroll-margin-top: var(--space-md);
+}

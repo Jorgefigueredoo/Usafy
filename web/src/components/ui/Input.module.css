@@ -49,6 +49,11 @@
   outline: none;
 }
 
+/* O foco já aparece na borda do .control (focus-within); evita um segundo contorno. */
+.input:focus-visible {
+  outline: none;
+}
+
 .input::placeholder {
   color: var(--color-text-secondary);
   opacity: 0.7;

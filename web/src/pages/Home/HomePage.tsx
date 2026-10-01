@@ -2,15 +2,18 @@ import { lazy, Suspense, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
-import { Button, Card, Icon, Input, Logo } from '@/components/ui';
+import { Button, Card, Icon, Logo } from '@/components/ui';
 import { useCurrentRoute, useRouteSearch, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
 import type { RouteEndpoint } from '@/services/routeService';
 import { layout } from '@/theme';
+import { cx } from '@/utils/cx';
 
 import { ErrorMessage } from './ErrorMessage';
 import styles from './HomePage.module.css';
 import { NeighborhoodChips } from './NeighborhoodChips';
+import { PlaceField } from './PlaceField';
+import { EMPTY_PLACE, type PlaceValue } from './placeValue';
 
 // Mapbox GL fica fora do bundle inicial: o formulário aparece na hora, o mapa chega logo depois.
 const HomeMap = lazy(() => import('./HomeMap'));
@@ -27,6 +30,11 @@ const RECIFE_NEIGHBORHOODS = ['Boa Viagem', 'Pina', 'Graças', 'Casa Amarela', '
  */
 type OriginMode = 'auto' | 'current' | 'text';
 
+/** Lugar escolhido nas sugestões vai com coordenada; texto livre passa pelo geocoding. */
+function toEndpoint(place: PlaceValue): RouteEndpoint {
+  return place.coordinate ? { label: place.text.trim(), coordinate: place.coordinate } : place.text;
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const { setRoute } = useCurrentRoute();
@@ -34,8 +42,9 @@ export function HomePage() {
   const location = useUserLocation();
 
   const [originMode, setOriginMode] = useState<OriginMode>('auto');
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
+  const [origin, setOrigin] = useState<PlaceValue>(EMPTY_PLACE);
+  const [destination, setDestination] = useState<PlaceValue>(EMPTY_PLACE);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
   const locating = location.status === 'locating';
   const locationFailed = location.status === 'error' && location.coordinate === null;
@@ -45,25 +54,21 @@ export function HomePage() {
     (originMode === 'auto' && location.coordinate !== null);
 
   const waitingForFix = usingCurrentLocation && !location.coordinate && locating;
-  const originValue = !usingCurrentLocation
-    ? origin
-    : waitingForFix
-      ? 'Obtendo localização…'
-      : CURRENT_LOCATION_LABEL;
+  const currentLocationText = waitingForFix ? 'Obtendo localização…' : CURRENT_LOCATION_LABEL;
 
-  const hasOrigin = usingCurrentLocation ? location.coordinate !== null : origin.trim().length > 0;
-  const canSubmit = hasOrigin && destination.trim().length > 0 && !loading;
+  const hasOrigin = usingCurrentLocation ? location.coordinate !== null : origin.text.trim().length > 0;
+  const canSubmit = hasOrigin && destination.text.trim().length > 0 && !loading;
 
   // Erro de GPS só importa se o usuário quer usar a localização (não quando digita a origem).
   const locationError = originMode !== 'text' && location.status === 'error' ? location.error : null;
 
-  const updateOrigin = (value: string) => {
+  const updateOrigin = (value: PlaceValue) => {
     setOriginMode('text');
     setOrigin(value);
     clearError();
   };
 
-  const updateDestination = (value: string) => {
+  const updateDestination = (value: PlaceValue) => {
     setDestination(value);
     clearError();
   };
@@ -76,14 +81,15 @@ export function HomePage() {
 
   const typeOrigin = () => {
     setOriginMode('text');
-    setOrigin('');
+    setOrigin(EMPTY_PLACE);
     clearError();
   };
 
   // Atalho: preenche o primeiro campo vazio (origem, depois destino).
   const fillNextEmpty = (neighborhood: string) => {
-    if (!usingCurrentLocation && !origin.trim()) updateOrigin(neighborhood);
-    else updateDestination(neighborhood);
+    const place = { text: neighborhood, coordinate: null };
+    if (!usingCurrentLocation && !origin.text.trim()) updateOrigin(place);
+    else updateDestination(place);
   };
 
   const swap = () => {
@@ -99,9 +105,9 @@ export function HomePage() {
     const originEndpoint: RouteEndpoint =
       usingCurrentLocation && location.coordinate
         ? { label: CURRENT_LOCATION_LABEL, coordinate: location.coordinate }
-        : origin;
+        : toEndpoint(origin);
 
-    const route = await search(originEndpoint, destination);
+    const route = await search(originEndpoint, toEndpoint(destination));
     if (route) {
       setRoute(route);
       navigate(paths.map);
@@ -109,7 +115,7 @@ export function HomePage() {
   };
 
   return (
-    <div className={styles.page}>
+    <div className={cx(styles.page, suggestionsOpen && styles.searching)}>
       <div className={styles.mapArea}>
         <Suspense fallback={null}>
           <HomeMap
@@ -126,12 +132,15 @@ export function HomePage() {
         <form id={FORM_ID} className={styles.form} onSubmit={handleSubmit} noValidate>
           <Card>
             <div className={styles.fields}>
-              <Input
+              <PlaceField
                 label="Origem"
                 icon={usingCurrentLocation ? 'locate' : 'pin'}
-                placeholder="Ex.: Boa Viagem"
-                value={originValue}
-                onChangeText={updateOrigin}
+                placeholder="Ex.: Shopping Recife"
+                value={origin}
+                displayText={usingCurrentLocation ? currentLocationText : undefined}
+                onChange={updateOrigin}
+                near={location.coordinate}
+                onOpenChange={setSuggestionsOpen}
                 readOnly={usingCurrentLocation}
                 disabled={loading}
                 enterKeyHint="next"
@@ -159,21 +168,26 @@ export function HomePage() {
                   )
                 }
               />
-              <button
-                type="button"
-                className={styles.swap}
-                onClick={swap}
-                disabled={loading || usingCurrentLocation || (!origin && !destination)}
-                aria-label="Inverter origem e destino"
-              >
-                <Icon name="swap" size={layout.iconSm} />
-              </button>
-              <Input
+              {/* Some com a lista aberta: ela empurra os campos e o botão ficaria fora do lugar. */}
+              {!suggestionsOpen && (
+                <button
+                  type="button"
+                  className={styles.swap}
+                  onClick={swap}
+                  disabled={loading || usingCurrentLocation || (!origin.text && !destination.text)}
+                  aria-label="Inverter origem e destino"
+                >
+                  <Icon name="swap" size={layout.iconSm} />
+                </button>
+              )}
+              <PlaceField
                 label="Destino"
                 icon="flag"
-                placeholder="Ex.: Casa Amarela"
+                placeholder="Ex.: RioMar, hospital, rua..."
                 value={destination}
-                onChangeText={updateDestination}
+                onChange={updateDestination}
+                near={location.coordinate}
+                onOpenChange={setSuggestionsOpen}
                 disabled={loading}
                 enterKeyHint="go"
               />
@@ -192,18 +206,21 @@ export function HomePage() {
         </form>
       </main>
 
-      <div className={styles.footer}>
-        <Button
-          type="submit"
-          form={FORM_ID}
-          label="Ver rota segura"
-          loadingLabel="Calculando rota…"
-          trailingIcon="chevronRight"
-          loading={loading}
-          disabled={!canSubmit}
-          fullWidth
-        />
-      </div>
+      {/* Enquanto o usuário escolhe um lugar, o botão fixo sairia por cima das sugestões. */}
+      {!suggestionsOpen && (
+        <div className={styles.footer}>
+          <Button
+            type="submit"
+            form={FORM_ID}
+            label="Ver rota segura"
+            loadingLabel="Calculando rota…"
+            trailingIcon="chevronRight"
+            loading={loading}
+            disabled={!canSubmit}
+            fullWidth
+          />
+        </div>
+      )}
     </div>
   );
 }
