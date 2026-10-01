@@ -1,0 +1,26 @@
+.spacer {
+  flex-shrink: 0;
+}
+
+.flex {
+  flex: 1;
+}
+
+.xs {
+  height: var(--space-xs);
+}
+.sm {
+  height: var(--space-sm);
+}
+.md {
+  height: var(--space-md);
+}
+.lg {
+  height: var(--space-lg);
+}
+.xl {
+  height: var(--space-xl);
+}
+.xxl {
+  height: var(--space-xxl);
+}

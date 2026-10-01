@@ -1,0 +1,23 @@
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.bar {
+  margin-top: var(--space-md);
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-xl);
+  margin-top: var(--space-lg);
+}

@@ -1,0 +1,10 @@
+.card {
+  background: var(--color-surface);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.spacious {
+  padding: var(--space-lg);
+}

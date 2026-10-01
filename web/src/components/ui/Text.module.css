@@ -1,0 +1,70 @@
+.text {
+  margin: 0;
+}
+
+.display {
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  font-weight: var(--text-display-weight);
+  letter-spacing: var(--text-display-tracking);
+}
+
+.title {
+  font-size: var(--text-title-size);
+  line-height: var(--text-title-line);
+  font-weight: var(--text-title-weight);
+  letter-spacing: var(--text-title-tracking);
+}
+
+.subtitle {
+  font-size: var(--text-subtitle-size);
+  line-height: var(--text-subtitle-line);
+  font-weight: var(--text-subtitle-weight);
+  letter-spacing: var(--text-subtitle-tracking);
+}
+
+.body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--text-body-weight);
+  letter-spacing: var(--text-body-tracking);
+}
+
+.caption {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--text-caption-weight);
+  letter-spacing: var(--text-caption-tracking);
+}
+
+.tone-primary {
+  color: var(--color-text-primary);
+}
+.tone-secondary {
+  color: var(--color-text-secondary);
+}
+.tone-accent {
+  color: var(--color-accent);
+}
+.tone-danger {
+  color: var(--color-danger);
+}
+.tone-low {
+  color: var(--risk-low-tone);
+}
+.tone-medium {
+  color: var(--risk-medium-tone);
+}
+.tone-high {
+  color: var(--risk-high-tone);
+}
+
+.align-start {
+  text-align: start;
+}
+.align-center {
+  text-align: center;
+}
+.align-end {
+  text-align: end;
+}

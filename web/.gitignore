@@ -1,0 +1,8 @@
+node_modules
+dist
+dev-dist
+*.local
+*.tsbuildinfo
+
+# Token do Mapbox fica só na máquina local
+.env

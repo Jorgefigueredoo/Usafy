@@ -1,0 +1,24 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xxl);
+  height: var(--space-xxl);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: var(--layout-border-width) solid var(--color-border);
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}

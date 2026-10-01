@@ -1,0 +1,30 @@
+.track {
+  width: 100%;
+  height: var(--space-sm);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: var(--risk-bar-value);
+  border-radius: var(--radius-full);
+  animation: grow 0.45s ease-out;
+}
+
+.low {
+  background: var(--risk-low-fill);
+}
+.medium {
+  background: var(--risk-medium-fill);
+}
+.high {
+  background: var(--risk-high-fill);
+}
+
+@keyframes grow {
+  from {
+    width: 0;
+  }
+}

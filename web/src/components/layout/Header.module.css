@@ -1,0 +1,52 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--layout-touch-target);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-touch-target);
+  height: var(--layout-touch-target);
+  margin-left: calc(-1 * var(--space-sm));
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.back:hover {
+  background: var(--color-overlay);
+}
+
+/* Variante sobre o mapa: só os botões capturam toque, o resto deixa o mapa arrastar. */
+.floating {
+  pointer-events: none;
+}
+
+.floating .back,
+.floating .trailing {
+  pointer-events: auto;
+}
+
+/* Fundo próprio para o botão não sumir sobre os tiles. */
+.floating .back {
+  margin-left: 0;
+  background: var(--color-scrim);
+  border: var(--layout-border-width) solid var(--color-border);
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.trailing {
+  flex-shrink: 0;
+}

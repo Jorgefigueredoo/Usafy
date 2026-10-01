@@ -1,0 +1,52 @@
+.map {
+  position: absolute;
+  inset: 0;
+  background: var(--color-background);
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/*
+ * Marcadores criados via DOM para o Mapbox. Não usar `transform` aqui: o Mapbox
+ * escreve o próprio transform no elemento para posicioná-lo.
+ */
+.originMarker {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  border: calc(var(--space-xs) + var(--layout-border-width)) solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+}
+
+.destinationMarker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xl);
+  height: var(--space-xl);
+  border: var(--layout-focus-ring-width) solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+}
+
+.destinationMarker::after {
+  content: '';
+  width: var(--space-sm);
+  height: var(--space-sm);
+  border-radius: var(--radius-full);
+  background: var(--color-text-primary);
+}
