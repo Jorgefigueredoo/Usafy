@@ -25,6 +25,17 @@ export interface RouteSegment {
   factors: RiskFactor[];
 }
 
+/** Direção visual da manobra, já normalizada para os ícones do app. */
+export type ManeuverDirection = 'left' | 'right' | 'straight' | 'uturn' | 'arrive';
+
+/** Instrução de navegação passo a passo ("Vire à direita na Rua X"). */
+export interface Maneuver {
+  instruction: string;
+  direction: ManeuverDirection;
+  /** Onde a manobra acontece, em metros desde o início da rota. */
+  distanceFromStartMeters: number;
+}
+
 export interface Route {
   id: string;
   origin: string;
@@ -36,4 +47,6 @@ export interface Route {
   /** Traçado completo; o primeiro e o último ponto são origem e destino. */
   geometry: Coordinate[];
   segments: RouteSegment[];
+  /** Manobras em ordem, usadas no modo navegação. */
+  maneuvers: Maneuver[];
 }

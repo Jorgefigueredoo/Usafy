@@ -48,6 +48,12 @@ interface RouteSegment {
   factors: RiskFactor[];
 }
 
+interface Maneuver {
+  instruction: string;     // em pt-BR, ex.: "Vire à direita para Rua X."
+  direction: 'left' | 'right' | 'straight' | 'uturn' | 'arrive';
+  distanceFromStartMeters: number; // onde a manobra acontece, desde o início da rota
+}
+
 interface Route {
   id: string;
   origin: string;
@@ -58,8 +64,15 @@ interface Route {
   distanceKm: number;
   geometry: Coordinate[];  // traçado completo; primeiro/último ponto = origem/destino
   segments: RouteSegment[];
+  maneuvers: Maneuver[];   // instruções passo a passo do modo navegação (sem a partida)
 }
 ```
+
+O `web/` usa `maneuvers` no modo navegação (estilo Waze). Hoje ele monta essa lista a partir dos
+`steps` da Mapbox Directions; o backend pode repassar os mesmos dados. Durante a navegação, o
+cliente recalcula a rota sozinho quando o usuário sai dela, chamando de novo este endpoint com a
+posição atual como origem — então ele precisa aceitar **coordenadas** além de texto (ex.:
+`{ "origin": { "coordinate": [-34.89, -8.12] }, "destination": "Casa Amarela" }`).
 
 Faixas de score usadas pelos clientes para derivar `riskLevel`: `0–33` low, `34–66` medium,
 `67–100` high.

@@ -14,6 +14,7 @@ function isRoute(value: unknown): value is Route {
     typeof candidate.id === 'string' &&
     Array.isArray(candidate.geometry) &&
     Array.isArray(candidate.segments) &&
+    Array.isArray(candidate.maneuvers) &&
     typeof candidate.overallScore === 'number'
   );
 }

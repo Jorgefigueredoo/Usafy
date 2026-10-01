@@ -12,6 +12,11 @@ export type IconName =
   | 'alert'
   | 'locate'
   | 'close'
+  | 'navigate'
+  | 'turnLeft'
+  | 'turnRight'
+  | 'straight'
+  | 'uturn'
   | 'chevronLeft'
   | 'chevronRight';
 
@@ -86,6 +91,23 @@ const ICON_SHAPES: Record<IconName, IconShape[]> = {
   close: [
     { kind: 'path', d: 'M6.5 6.5l11 11' },
     { kind: 'path', d: 'M17.5 6.5l-11 11' },
+  ],
+  navigate: [{ kind: 'path', d: 'M12 3.2 19 20l-7-3.8L5 20l7-16.8Z' }],
+  turnLeft: [
+    { kind: 'path', d: 'M17 20v-6.5A4.5 4.5 0 0 0 12.5 9H5' },
+    { kind: 'path', d: 'M9 5 5 9l4 4' },
+  ],
+  turnRight: [
+    { kind: 'path', d: 'M7 20v-6.5A4.5 4.5 0 0 1 11.5 9H19' },
+    { kind: 'path', d: 'm15 5 4 4-4 4' },
+  ],
+  straight: [
+    { kind: 'path', d: 'M12 20V4.5' },
+    { kind: 'path', d: 'm6.5 10 5.5-5.5 5.5 5.5' },
+  ],
+  uturn: [
+    { kind: 'path', d: 'M7 20V9.5a5 5 0 0 1 10 0V16' },
+    { kind: 'path', d: 'm13.5 12.5 3.5 3.5 3.5-3.5' },
   ],
   chevronLeft: [{ kind: 'path', d: 'M14.6 5.4 8 12l6.6 6.6' }],
   chevronRight: [{ kind: 'path', d: 'M9.4 5.4 16 12l-6.6 6.6' }],

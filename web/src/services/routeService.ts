@@ -1,4 +1,4 @@
-import type { Coordinate, Route, RouteSegment } from '@/types';
+import type { Coordinate, Maneuver, ManeuverDirection, Route, RouteSegment } from '@/types';
 import { riskLevelFromScore } from '@/utils/risk';
 import { splitLineByDistance } from '@/utils/geo';
 
@@ -126,5 +126,33 @@ export async function getRoute(
     distanceKm: directions.distanceMeters / 1000,
     geometry: directions.geometry,
     segments,
+    maneuvers: buildManeuvers(directions.steps),
   };
+}
+
+function directionOf(type: string, modifier: string): ManeuverDirection {
+  if (type === 'arrive') return 'arrive';
+  if (modifier.includes('uturn')) return 'uturn';
+  if (modifier.includes('left')) return 'left';
+  if (modifier.includes('right')) return 'right';
+  return 'straight';
+}
+
+/** Cada passo do Directions começa com uma manobra; a posição dela é a soma dos passos anteriores. */
+function buildManeuvers(steps: DirectionsStep[]): Maneuver[] {
+  const maneuvers: Maneuver[] = [];
+  let distanceFromStart = 0;
+
+  for (const step of steps) {
+    // A partida ("Siga para o norte") já ficou para trás quando a navegação começa.
+    if (step.maneuverType !== 'depart' && step.instruction) {
+      maneuvers.push({
+        instruction: step.instruction,
+        direction: directionOf(step.maneuverType, step.maneuverModifier),
+        distanceFromStartMeters: distanceFromStart,
+      });
+    }
+    distanceFromStart += step.distanceMeters;
+  }
+  return maneuvers;
 }

@@ -61,6 +61,34 @@
   box-shadow: 0 var(--layout-border-width) var(--space-xs) var(--color-shadow);
 }
 
+/*
+ * Seta de navegação (modo Waze): disco branco com uma seta azul apontando para cima.
+ * Como o mapa gira com o rumo do usuário, "para cima" é sempre a direção do movimento.
+ */
+.navigator {
+  width: var(--space-xxl);
+  height: var(--space-xxl);
+}
+
+.navigator::before,
+.navigator::after {
+  content: '';
+  position: absolute;
+}
+
+.navigator::before {
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-text-primary);
+  box-shadow: 0 var(--space-xs) var(--space-md) var(--color-shadow);
+}
+
+.navigator::after {
+  inset: var(--space-sm);
+  background: var(--color-primary);
+  clip-path: polygon(50% 0, 100% 100%, 50% 74%, 0 100%);
+}
+
 @keyframes pulse {
   from {
     transform: scale(0.3);

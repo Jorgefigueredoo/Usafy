@@ -1,0 +1,21 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.eta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.details {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.stop {
+  flex-shrink: 0;
+}

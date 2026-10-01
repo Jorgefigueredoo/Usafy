@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import type { Coordinate } from '@/types';
-
-import { LocationContext, type LocationStatus, type UserLocationValue } from './locationContext';
+import {
+  LocationContext,
+  type LocationStatus,
+  type UserLocationValue,
+  type UserPosition,
+} from './locationContext';
 
 const WATCH_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
-  // Aceita uma leitura de até 30 s atrás: a moto anda, mas o primeiro ponto sai na hora.
-  maximumAge: 30_000,
+  // Leituras em cache envelhecem rápido numa moto; na navegação a posição precisa ser atual.
+  maximumAge: 2_000,
   timeout: 15_000,
 };
 
@@ -34,7 +37,7 @@ export interface LocationProviderProps {
 
 export function LocationProvider({ children }: LocationProviderProps) {
   const [status, setStatus] = useState<LocationStatus>('idle');
-  const [coordinate, setCoordinate] = useState<Coordinate | null>(null);
+  const [position, setPosition] = useState<UserPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
@@ -56,15 +59,22 @@ export function LocationProvider({ children }: LocationProviderProps) {
     setError(null);
 
     watchIdRef.current = navigator.geolocation.watchPosition(
-      ({ coords }) => {
-        setCoordinate([coords.longitude, coords.latitude]);
+      ({ coords, timestamp }) => {
+        setPosition({
+          coordinate: [coords.longitude, coords.latitude],
+          // Alguns aparelhos mandam NaN quando parados; tratamos como "sem leitura".
+          heading: Number.isFinite(coords.heading) ? coords.heading : null,
+          speed: Number.isFinite(coords.speed) ? coords.speed : null,
+          accuracy: coords.accuracy,
+          timestamp,
+        });
         setStatus('active');
         setError(null);
       },
       (positionError) => {
         if (positionError.code === positionError.PERMISSION_DENIED) {
           stopWatching();
-          setCoordinate(null);
+          setPosition(null);
           setStatus('error');
           setError(messageFor(positionError));
           return;
@@ -98,8 +108,8 @@ export function LocationProvider({ children }: LocationProviderProps) {
   }, [request, stopWatching]);
 
   const value = useMemo<UserLocationValue>(
-    () => ({ status, coordinate, error, request }),
-    [status, coordinate, error, request],
+    () => ({ status, coordinate: position?.coordinate ?? null, position, error, request }),
+    [status, position, error, request],
   );
 
   return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;

@@ -1,0 +1,23 @@
+.arrival {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xxl);
+  height: var(--space-xxl);
+  border-radius: var(--radius-full);
+  background: var(--risk-low-surface);
+  color: var(--risk-low-tone);
+  flex-shrink: 0;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}

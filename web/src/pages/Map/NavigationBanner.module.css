@@ -1,0 +1,80 @@
+.banner {
+  overflow: hidden;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 var(--space-xs) var(--space-lg) var(--color-shadow);
+}
+
+.instruction {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.maneuverIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xxl);
+  height: var(--space-xxl);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Faixa do trecho atual: o diferencial do Usafy em relação a um GPS comum. */
+.risk {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--text-subtitle-weight);
+}
+
+.riskName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: var(--text-caption-weight);
+  opacity: 0.85;
+}
+
+.dot {
+  width: var(--space-sm);
+  height: var(--space-sm);
+  border-radius: var(--radius-full);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.low {
+  background: var(--risk-low-surface);
+  color: var(--risk-low-tone);
+}
+.medium {
+  background: var(--risk-medium-surface);
+  color: var(--risk-medium-tone);
+}
+.high {
+  background: var(--risk-high-surface);
+  color: var(--risk-high-tone);
+}
+
+.message {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}

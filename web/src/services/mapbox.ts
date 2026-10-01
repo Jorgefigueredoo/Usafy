@@ -15,6 +15,12 @@ export interface Place {
 export interface DirectionsStep {
   name: string;
   distanceMeters: number;
+  /** Texto da manobra no início do passo, já em pt-BR ("Vire à direita na Rua X"). */
+  instruction: string;
+  /** Tipo da manobra no Mapbox: `turn`, `depart`, `arrive`, `roundabout`... */
+  maneuverType: string;
+  /** Direção: `left`, `slight right`, `uturn`, `straight`... (vazio quando não se aplica). */
+  maneuverModifier: string;
 }
 
 export interface Directions {
@@ -52,10 +58,16 @@ function parseSteps(legs: unknown): DirectionsStep[] {
   if (!Array.isArray(legs)) return [];
   return legs.flatMap((leg: unknown) => {
     if (!isObject(leg) || !Array.isArray(leg.steps)) return [];
-    return leg.steps.filter(isObject).map((step) => ({
-      name: typeof step.name === 'string' ? step.name : '',
-      distanceMeters: typeof step.distance === 'number' ? step.distance : 0,
-    }));
+    return leg.steps.filter(isObject).map((step) => {
+      const maneuver = isObject(step.maneuver) ? step.maneuver : {};
+      return {
+        name: typeof step.name === 'string' ? step.name : '',
+        distanceMeters: typeof step.distance === 'number' ? step.distance : 0,
+        instruction: typeof maneuver.instruction === 'string' ? maneuver.instruction : '',
+        maneuverType: typeof maneuver.type === 'string' ? maneuver.type : '',
+        maneuverModifier: typeof maneuver.modifier === 'string' ? maneuver.modifier : '',
+      };
+    });
   });
 }
 

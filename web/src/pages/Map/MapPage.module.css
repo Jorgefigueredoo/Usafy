@@ -11,12 +11,36 @@
   min-height: 0;
 }
 
-.header {
+/* Header (visão geral) ou banner de navegação, flutuando sobre o mapa. */
+.overlayTop {
   position: absolute;
   top: calc(var(--space-md) + env(safe-area-inset-top));
   left: var(--space-md);
   right: var(--space-md);
   z-index: 1;
+  max-width: var(--layout-max-content-width);
+  margin: 0 auto;
+}
+
+/* Aparece quando o usuário arrasta o mapa durante a navegação. */
+.recenter {
+  position: absolute;
+  left: var(--space-md);
+  bottom: calc(var(--radius-lg) + var(--space-md));
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--layout-touch-target);
+  padding: 0 var(--space-lg);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--text-subtitle-size);
+  font-weight: var(--text-subtitle-weight);
+  box-shadow: 0 var(--space-xs) var(--space-md) var(--color-shadow);
+  cursor: pointer;
 }
 
 /* Painel sobe um pouco sobre o mapa, como uma "bottom sheet". */
