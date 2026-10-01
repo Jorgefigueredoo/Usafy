@@ -24,6 +24,10 @@ export const colors = {
   danger: '#EF6C6C',
   transparent: 'transparent',
   scrim: 'rgba(15, 30, 46, 0.88)',
+
+  // Degradê do escudo da logo (claro no topo-esquerda, escuro na base-direita).
+  brandGradientStart: '#2AA0E8',
+  brandGradientEnd: '#1A4FA3',
 } as const;
 
 /** Cor de preenchimento (mapas, barras, marcadores) por nível de risco. */

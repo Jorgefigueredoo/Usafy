@@ -1,0 +1,32 @@
+.map {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-sunken);
+}
+
+/* Fica acima da borda arredondada do painel, que sobe sobre o mapa. */
+.locate {
+  position: absolute;
+  right: var(--space-md);
+  bottom: calc(var(--radius-lg) + var(--space-md));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-touch-target);
+  height: var(--layout-touch-target);
+  padding: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-scrim);
+  color: var(--color-text-primary);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+  cursor: pointer;
+}
+
+.locate:hover {
+  background: var(--color-surface);
+}
+
+.locate[data-active='true'] {
+  color: var(--color-accent);
+}
