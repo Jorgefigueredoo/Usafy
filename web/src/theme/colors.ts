@@ -21,6 +21,8 @@ export const colors = {
   overlay: 'rgba(255, 255, 255, 0.06)',
   scrim: 'rgba(15, 30, 46, 0.92)',
   shadow: 'rgba(0, 0, 0, 0.35)',
+  /** Halo pulsante em volta do ponto "você está aqui" (primary translúcido). */
+  locationPulse: 'rgba(37, 99, 168, 0.35)',
   danger: '#EF6C6C',
   dangerSurface: '#3A1A1A',
 } as const;

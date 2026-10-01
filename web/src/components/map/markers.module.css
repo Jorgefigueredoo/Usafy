@@ -1,0 +1,73 @@
+/*
+ * Marcadores criados via DOM para o Mapbox. Não usar `transform` no elemento raiz:
+ * o Mapbox escreve o próprio transform nele para posicioná-lo.
+ */
+
+.origin {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  border: calc(var(--space-xs) + var(--layout-border-width)) solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+}
+
+.destination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xl);
+  height: var(--space-xl);
+  border: var(--layout-focus-ring-width) solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+}
+
+.destination::after {
+  content: '';
+  width: var(--space-sm);
+  height: var(--space-sm);
+  border-radius: var(--radius-full);
+  background: var(--color-text-primary);
+}
+
+/*
+ * "Você está aqui": halo pulsante (::before) por baixo do ponto azul (::after).
+ * A raiz fica só como caixa; o Mapbox já a posiciona como `absolute`.
+ */
+.user {
+  width: calc(var(--space-md) + var(--space-xs));
+  height: calc(var(--space-md) + var(--space-xs));
+}
+
+.user::before,
+.user::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-full);
+}
+
+.user::before {
+  inset: calc(-1 * var(--space-md));
+  background: var(--color-location-pulse);
+  animation: pulse 2s ease-out infinite;
+}
+
+.user::after {
+  inset: 0;
+  border: calc(var(--space-xs) - var(--layout-border-width)) solid var(--color-text-primary);
+  background: var(--color-primary);
+  box-shadow: 0 var(--layout-border-width) var(--space-xs) var(--color-shadow);
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}

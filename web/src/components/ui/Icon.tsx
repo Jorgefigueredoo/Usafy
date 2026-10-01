@@ -10,6 +10,8 @@ export type IconName =
   | 'route'
   | 'swap'
   | 'alert'
+  | 'locate'
+  | 'close'
   | 'chevronLeft'
   | 'chevronRight';
 
@@ -72,6 +74,18 @@ const ICON_SHAPES: Record<IconName, IconShape[]> = {
     { kind: 'circle', cx: 12, cy: 12, r: 8.4 },
     { kind: 'path', d: 'M12 7.8v4.8' },
     { kind: 'path', d: 'M12 16.2h.01' },
+  ],
+  locate: [
+    { kind: 'circle', cx: 12, cy: 12, r: 6.4 },
+    { kind: 'circle', cx: 12, cy: 12, r: 2.2 },
+    { kind: 'path', d: 'M12 2.6v3' },
+    { kind: 'path', d: 'M12 18.4v3' },
+    { kind: 'path', d: 'M2.6 12h3' },
+    { kind: 'path', d: 'M18.4 12h3' },
+  ],
+  close: [
+    { kind: 'path', d: 'M6.5 6.5l11 11' },
+    { kind: 'path', d: 'M17.5 6.5l-11 11' },
   ],
   chevronLeft: [{ kind: 'path', d: 'M14.6 5.4 8 12l6.6 6.6' }],
   chevronRight: [{ kind: 'path', d: 'M9.4 5.4 16 12l-6.6 6.6' }],

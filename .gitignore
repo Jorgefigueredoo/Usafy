@@ -1,41 +1,21 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Regras gerais do monorepo. Cada projeto (mobile/, web/, backend/) tem o próprio .gitignore
+# com as regras específicas da sua stack.
 
-# dependencies
-node_modules/
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
+# Segredos — vale para qualquer pasta
+.env
 .env*.local
 
-# typescript
-*.tsbuildinfo
+# Dependências
+node_modules/
 
-# generated native folders
-/ios
-/android
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.idea/
+*.iml
+
+# Logs
+*.log

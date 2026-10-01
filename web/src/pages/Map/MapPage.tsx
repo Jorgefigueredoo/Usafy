@@ -2,7 +2,7 @@ import { Navigate, useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
 import { Button, Text } from '@/components/ui';
-import { useCurrentRoute } from '@/hooks';
+import { useCurrentRoute, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
 
 import styles from './MapPage.module.css';
@@ -13,13 +13,14 @@ import { RouteSummaryCard } from './RouteSummaryCard';
 export default function MapPage() {
   const navigate = useNavigate();
   const { route } = useCurrentRoute();
+  const { coordinate: userLocation } = useUserLocation();
 
   if (!route) return <Navigate to={paths.home} replace />;
 
   return (
     <div className={styles.page}>
       <div className={styles.mapArea}>
-        <RouteMap route={route} />
+        <RouteMap route={route} userLocation={userLocation} />
         <Header
           floating
           onBack={() => navigate(paths.home)}

@@ -1,12 +1,39 @@
-import type { Route, RouteSegment } from '@/types';
+import type { Coordinate, Route, RouteSegment } from '@/types';
 import { riskLevelFromScore } from '@/utils/risk';
 import { splitLineByDistance } from '@/utils/geo';
 
 import { geocode, getDirections, type DirectionsStep } from './mapbox';
+import { isInsideRecifeMetro } from './mapboxConfig';
 import { createSeededRandom, mockSegmentRisk } from './riskMock';
 import { RouteServiceError } from './routeServiceError';
 
 export { RouteServiceError };
+
+/** Ponto de partida/chegada: texto livre (vai para o geocoding) ou coordenada já conhecida (GPS). */
+export type RouteEndpoint = string | { label: string; coordinate: Coordinate };
+
+interface ResolvedEndpoint {
+  label: string;
+  coordinate: Coordinate;
+}
+
+async function resolveEndpoint(endpoint: RouteEndpoint, signal?: AbortSignal): Promise<ResolvedEndpoint> {
+  if (typeof endpoint !== 'string') {
+    if (!isInsideRecifeMetro(endpoint.coordinate)) {
+      throw new RouteServiceError(
+        'Sua localização está fora da Região Metropolitana do Recife, onde o Usafy funciona por enquanto. Digite um endereço de origem.',
+      );
+    }
+    return endpoint;
+  }
+
+  const query = endpoint.trim();
+  if (!query) throw new RouteServiceError('Informe origem e destino para calcular a rota.');
+
+  const place = await geocode(query, signal);
+  // Mantém o texto que o usuário digitou como rótulo: é mais curto e reconhecível que o place_name.
+  return { label: query, coordinate: place.coordinate };
+}
 
 const MIN_SEGMENTS = 3;
 const MAX_SEGMENTS = 5;
@@ -47,20 +74,13 @@ function nameForRange(steps: DirectionsStep[], start: number, end: number, posit
 }
 
 export async function getRoute(
-  origin: string,
-  destination: string,
+  origin: RouteEndpoint,
+  destination: RouteEndpoint,
   signal?: AbortSignal,
 ): Promise<Route> {
-  const originQuery = origin.trim();
-  const destinationQuery = destination.trim();
-
-  if (!originQuery || !destinationQuery) {
-    throw new RouteServiceError('Informe origem e destino para calcular a rota.');
-  }
-
   const [from, to] = await Promise.all([
-    geocode(originQuery, signal),
-    geocode(destinationQuery, signal),
+    resolveEndpoint(origin, signal),
+    resolveEndpoint(destination, signal),
   ]);
 
   const directions = await getDirections(from.coordinate, to.coordinate, signal);
@@ -72,7 +92,11 @@ export async function getRoute(
   const segmentCount = segmentCountFor(directions.distanceMeters);
   const pieces = splitLineByDistance(directions.geometry, segmentCount);
   const segmentDistance = directions.distanceMeters / pieces.length;
-  const random = createSeededRandom(`${originQuery}|${destinationQuery}`.toLowerCase());
+  // Semente pelas coordenadas (~100 m de precisão), não pelo texto: "Minha localização"
+  // em lugares diferentes precisa gerar riscos diferentes.
+  const random = createSeededRandom(
+    [from.coordinate, to.coordinate].map((point) => point.map((n) => n.toFixed(3)).join(',')).join('|'),
+  );
 
   // TODO: substituir risco mockado por cálculo real quando o backend Spring Boot estiver pronto.
   const segments: RouteSegment[] = pieces.map((coordinates, index) => {
@@ -94,8 +118,8 @@ export async function getRoute(
 
   return {
     id: crypto.randomUUID(),
-    origin: originQuery,
-    destination: destinationQuery,
+    origin: from.label,
+    destination: to.label,
     overallRisk: riskLevelFromScore(overallScore),
     overallScore,
     durationMinutes: directions.durationSeconds / 60,

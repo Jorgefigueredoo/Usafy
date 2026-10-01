@@ -2,8 +2,8 @@ import { Header, Screen, Spacer } from '@/components/layout';
 import { Button } from '@/components/ui';
 import type { RootStackScreenProps } from '@/navigation/types';
 
-import { MapPlaceholder } from './MapPlaceholder';
 import { RiskLegend } from './RiskLegend';
+import { RouteMap } from './RouteMap';
 import { RouteSummaryCard } from './RouteSummaryCard';
 
 export function MapScreen({ navigation, route }: RootStackScreenProps<'Map'>) {
@@ -14,7 +14,11 @@ export function MapScreen({ navigation, route }: RootStackScreenProps<'Map'>) {
       <Header title="Rota sugerida" onBack={() => navigation.goBack()} />
 
       <Spacer size="md" />
-      <MapPlaceholder segments={plannedRoute.segments} />
+      <RouteMap
+        segments={plannedRoute.segments}
+        origin={plannedRoute.originCoordinate}
+        destination={plannedRoute.destinationCoordinate}
+      />
 
       <Spacer size="md" />
       <RiskLegend />

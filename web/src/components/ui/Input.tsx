@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes } from 'react';
+import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
 
 import { layout } from '@/theme';
 
@@ -10,9 +10,11 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   value: string;
   onChangeText: (value: string) => void;
   icon?: IconName;
+  /** Ação no fim do campo (ex.: botão "usar minha localização"). */
+  trailing?: ReactNode;
 }
 
-export function Input({ label, value, onChangeText, icon, id, ...rest }: InputProps) {
+export function Input({ label, value, onChangeText, icon, trailing, id, ...rest }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
@@ -31,6 +33,7 @@ export function Input({ label, value, onChangeText, icon, id, ...rest }: InputPr
           autoComplete="off"
           {...rest}
         />
+        {trailing && <div className={styles.trailing}>{trailing}</div>}
       </div>
     </div>
   );

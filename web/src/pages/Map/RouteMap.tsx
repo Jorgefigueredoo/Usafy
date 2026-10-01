@@ -1,17 +1,18 @@
 import type { FeatureCollection, LineString } from 'geojson';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState } from 'react';
 
-import { Icon, Text } from '@/components/ui';
-import { MAP_STYLE, MAPBOX_TOKEN } from '@/services/mapboxConfig';
-import { colors, layout, riskFillColors, spacing } from '@/theme';
+import { createMap, createMarker, MapFallback, onMapFatalError } from '@/components/map';
+import { MAPBOX_TOKEN } from '@/services/mapboxConfig';
+import { colors, riskFillColors, spacing } from '@/theme';
 import type { Coordinate, RiskLevel, Route } from '@/types';
 
 import styles from './RouteMap.module.css';
 
 export interface RouteMapProps {
   route: Route;
+  /** Posição atual do usuário; atualiza o ponto azul sem redesenhar a rota. */
+  userLocation?: Coordinate | null;
 }
 
 const SOURCE_ID = 'route-segments';
@@ -44,16 +45,43 @@ function segmentsAsGeoJson(route: Route): FeatureCollection<LineString, { riskLe
   };
 }
 
-function markerElement(className: string | undefined, label: string): HTMLElement {
-  const element = document.createElement('div');
-  element.className = className ?? '';
-  element.setAttribute('role', 'img');
-  element.setAttribute('aria-label', label);
-  return element;
+function addRouteLayers(map: mapboxgl.Map, route: Route): void {
+  map.addSource(SOURCE_ID, { type: 'geojson', data: segmentsAsGeoJson(route) });
+
+  map.addLayer({
+    id: 'route-casing',
+    type: 'line',
+    source: SOURCE_ID,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': colors.background, 'line-width': CASING_WIDTH },
+  });
+
+  map.addLayer({
+    id: 'route-risk',
+    type: 'line',
+    source: SOURCE_ID,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-width': LINE_WIDTH,
+      'line-color': [
+        'match',
+        ['get', 'riskLevel'],
+        'low',
+        riskFillColors.low,
+        'medium',
+        riskFillColors.medium,
+        'high',
+        riskFillColors.high,
+        colors.primary,
+      ],
+    },
+  });
 }
 
-export function RouteMap({ route }: RouteMapProps) {
+export function RouteMap({ route, userLocation = null }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -62,90 +90,41 @@ export function RouteMap({ route }: RouteMapProps) {
     const end = route.geometry[route.geometry.length - 1];
     if (!container || !MAPBOX_TOKEN || !start || !end) return;
 
-    const map = new mapboxgl.Map({
-      container,
-      accessToken: MAPBOX_TOKEN,
-      style: MAP_STYLE,
+    const map = createMap(container, {
       bounds: boundsOf(route.geometry),
       fitBoundsOptions: { padding: FIT_PADDING },
-      // Rota de entrega não precisa de inclinação/rotação; evita giros acidentais com o polegar.
-      pitchWithRotate: false,
-      dragRotate: false,
-      touchPitch: false,
     });
-    map.touchZoomRotate.disableRotation();
+    mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
+    onMapFatalError(map, () => setFailed(true));
+    map.on('load', () => addRouteLayers(map, route));
 
-    map.on('error', () => {
-      // Só tratamos como falha fatal se o estilo base nem chegou a carregar (token inválido, offline).
-      if (!map.isStyleLoaded()) setFailed(true);
-    });
+    createMarker('origin', `Origem: ${route.origin}`).setLngLat(start).addTo(map);
+    createMarker('destination', `Destino: ${route.destination}`).setLngLat(end).addTo(map);
 
-    map.on('load', () => {
-      map.addSource(SOURCE_ID, { type: 'geojson', data: segmentsAsGeoJson(route) });
-
-      map.addLayer({
-        id: 'route-casing',
-        type: 'line',
-        source: SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': colors.background, 'line-width': CASING_WIDTH },
-      });
-
-      map.addLayer({
-        id: 'route-risk',
-        type: 'line',
-        source: SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: {
-          'line-width': LINE_WIDTH,
-          'line-color': [
-            'match',
-            ['get', 'riskLevel'],
-            'low',
-            riskFillColors.low,
-            'medium',
-            riskFillColors.medium,
-            'high',
-            riskFillColors.high,
-            colors.primary,
-          ],
-        },
-      });
-    });
-
-    const markers = [
-      new mapboxgl.Marker({ element: markerElement(styles.originMarker, `Origem: ${route.origin}`) })
-        .setLngLat(start)
-        .addTo(map),
-      new mapboxgl.Marker({
-        element: markerElement(styles.destinationMarker, `Destino: ${route.destination}`),
-      })
-        .setLngLat(end)
-        .addTo(map),
-    ];
-
+    // map.remove() também remove os marcadores presos a ele.
     return () => {
-      markers.forEach((marker) => marker.remove());
       map.remove();
+      mapRef.current = null;
+      userMarkerRef.current = null;
     };
   }, [route]);
 
-  if (!MAPBOX_TOKEN || failed) {
-    return (
-      <div className={styles.fallback} role="status">
-        <Icon name="alert" size={layout.iconLg} />
-        <Text variant="subtitle" align="center">
-          Não foi possível carregar o mapa
-        </Text>
-        <Text tone="secondary" align="center">
-          {MAPBOX_TOKEN
-            ? 'Verifique sua conexão e o token do Mapbox.'
-            : 'Defina VITE_MAPBOX_TOKEN no arquivo .env e reinicie o servidor.'}
-        </Text>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!userLocation) {
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
+      return;
+    }
+
+    userMarkerRef.current ??= createMarker('user', 'Você está aqui').setLngLat(userLocation).addTo(map);
+    userMarkerRef.current.setLngLat(userLocation);
+  }, [userLocation, route]);
+
+  if (!MAPBOX_TOKEN || failed) return <MapFallback />;
 
   return (
     <div

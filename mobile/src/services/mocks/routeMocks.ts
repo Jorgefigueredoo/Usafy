@@ -1,4 +1,4 @@
-import type { Route, RouteSegment } from '@/types';
+import type { Coordinate, Route, RouteSegment } from '@/types';
 import { riskLevelFromScore } from '@/utils/risk';
 
 import {
@@ -33,13 +33,33 @@ function toSegment(seed: SegmentSeed, index: number): RouteSegment {
   };
 }
 
+/** Centro do Recife, usado só se a rota vier sem trechos. */
+const FALLBACK_COORDINATE: Coordinate = [-34.877, -8.0476];
+
+/**
+ * Os trechos do mock vêm de bairros distantes; para a linha no mapa ficar
+ * contínua, cada trecho começa onde o anterior terminou.
+ */
+function connectSegments(segments: RouteSegment[]): RouteSegment[] {
+  return segments.map((segment, index) => {
+    const previous = segments[index - 1];
+    const previousEnd = previous?.coordinates[previous.coordinates.length - 1];
+    return previousEnd ? { ...segment, coordinates: [previousEnd, ...segment.coordinates] } : segment;
+  });
+}
+
 export function buildMockRoute(origin: string, destination: string): Route {
   const hash = hashInput(`${origin}>${destination}`.toLowerCase());
 
-  const segments = [LOW_RISK_SEEDS, MEDIUM_RISK_SEEDS, HIGH_RISK_SEEDS]
-    .map((seeds) => pickSeed(seeds, hash))
-    .filter((seed): seed is SegmentSeed => seed !== undefined)
-    .map(toSegment);
+  const segments = connectSegments(
+    [LOW_RISK_SEEDS, MEDIUM_RISK_SEEDS, HIGH_RISK_SEEDS]
+      .map((seeds) => pickSeed(seeds, hash))
+      .filter((seed): seed is SegmentSeed => seed !== undefined)
+      .map(toSegment),
+  );
+  const originCoordinate = segments[0]?.coordinates[0] ?? FALLBACK_COORDINATE;
+  const lastCoordinates = segments[segments.length - 1]?.coordinates ?? [];
+  const destinationCoordinate = lastCoordinates[lastCoordinates.length - 1] ?? FALLBACK_COORDINATE;
 
   const distanceMeters = segments.reduce((total, segment) => total + segment.distanceMeters, 0);
   const distanceKm = distanceMeters / METERS_IN_KM;
@@ -60,5 +80,7 @@ export function buildMockRoute(origin: string, destination: string): Route {
     durationMinutes: Math.round((distanceKm / AVERAGE_SPEED_KMH) * 60),
     distanceKm,
     segments,
+    originCoordinate,
+    destinationCoordinate,
   };
 }

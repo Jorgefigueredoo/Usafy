@@ -1,0 +1,13 @@
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  text-align: center;
+}

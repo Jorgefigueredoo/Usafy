@@ -12,3 +12,8 @@ export const RECIFE_CENTER: Coordinate = [-34.877, -8.0476];
  * Jaboatão, Camaragibe) — entregas cruzam o limite do município o tempo todo.
  */
 export const RECIFE_METRO_BBOX = [-35.1, -8.3, -34.8, -7.85] as const;
+
+export function isInsideRecifeMetro([longitude, latitude]: Coordinate): boolean {
+  const [west, south, east, north] = RECIFE_METRO_BBOX;
+  return longitude >= west && longitude <= east && latitude >= south && latitude <= north;
+}

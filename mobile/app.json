@@ -20,6 +20,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "backgroundColor": "#0F1E2E"
+    "backgroundColor": "#0F1E2E",
+    "plugins": [
+      "@rnmapbox/maps"
+    ]
   }
 }
