@@ -10,6 +10,7 @@ import { colors } from './src/theme/colors.ts';
 // pequena) e do aviso de tamanho do Vite. Ele já é carregado sob demanda, só na página do mapa.
 const MAX_PRECACHE_BYTES = 5 * 1024 * 1024;
 const MAPBOX_CHUNK_WARNING_KB = 2000;
+const GOOGLE_VERIFICATION_FILE = /^\/google[0-9a-f]+\.html$/;
 
 export default defineConfig({
   build: {
@@ -45,6 +46,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        // Arquivos de verificação do Google Search Console: precisam vir do servidor,
+        // nunca do cache nem trocados pelo index.html do SPA.
+        globIgnores: ['google*.html'],
+        navigateFallbackDenylist: [GOOGLE_VERIFICATION_FILE],
         maximumFileSizeToCacheInBytes: MAX_PRECACHE_BYTES,
       },
     }),
