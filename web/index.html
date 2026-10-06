@@ -26,6 +26,36 @@
     <meta name="twitter:title" content="Usafy" />
     <meta name="twitter:description" content="Rotas urbanas que priorizam sua segurança." />
     <meta name="twitter:image" content="https://www.usafy.com.br/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.usafy.com.br/#organization",
+            "name": "Usafy",
+            "url": "https://www.usafy.com.br/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.usafy.com.br/pwa-512x512.png",
+              "width": 512,
+              "height": 512
+            },
+            "image": "https://www.usafy.com.br/og-image.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.usafy.com.br/#website",
+            "url": "https://www.usafy.com.br/",
+            "name": "Usafy",
+            "description": "Rotas urbanas que priorizam sua segurança.",
+            "publisher": { "@id": "https://www.usafy.com.br/#organization" },
+            "inLanguage": "pt-BR"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
