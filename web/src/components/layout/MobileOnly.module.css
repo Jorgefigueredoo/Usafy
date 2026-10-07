@@ -1,0 +1,19 @@
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.iconWrap {
+  display: flex;
+  margin-bottom: var(--space-sm);
+  color: var(--color-accent);
+}
