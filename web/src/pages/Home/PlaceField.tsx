@@ -27,7 +27,7 @@ export interface PlaceFieldProps {
   /** Texto exibido no lugar de `value.text` (ex.: "Minha localização"). */
   displayText?: string;
   trailing?: ReactNode;
-  enterKeyHint?: 'next' | 'go';
+  enterKeyHint?: 'next' | 'go' | 'done';
 }
 
 export function PlaceField({
