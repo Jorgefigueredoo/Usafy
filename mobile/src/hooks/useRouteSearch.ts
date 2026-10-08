@@ -1,40 +1,47 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { RouteServiceError, getRoute } from '@/services/routeService';
+import { getRouteOptions, RouteServiceError, type RouteEndpoint } from '@/services/routeService';
 import type { Route } from '@/types';
 
-interface RouteSearchState {
-  isLoading: boolean;
+const GENERIC_ERROR = 'Não foi possível calcular a rota agora. Tente novamente em instantes.';
+
+export interface RouteSearchState {
+  loading: boolean;
   error: string | null;
+  /** Resolve com as opções de rota, ou `null` se falhou ou foi cancelada (o erro fica em `error`). */
+  search: (origin: RouteEndpoint, destination: RouteEndpoint) => Promise<Route[] | null>;
+  clearError: () => void;
 }
 
-export interface UseRouteSearchResult extends RouteSearchState {
-  /** Resolve com a rota, ou `null` quando houve erro (já refletido em `error`). */
-  searchRoute: (origin: string, destination: string) => Promise<Route | null>;
-}
+/** Isola a tela do ciclo de vida da busca: loading, erro, resultado e cancelamento. */
+export function useRouteSearch(): RouteSearchState {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
 
-const GENERIC_ERROR = 'Não foi possível calcular a rota agora. Tente novamente.';
+  // Sair da tela no meio da busca cancela as requisições ao Mapbox.
+  useEffect(() => () => controllerRef.current?.abort(), []);
 
-/** Isola a tela do ciclo de vida da requisição: loading, erro e resultado. */
-export function useRouteSearch(): UseRouteSearchResult {
-  const [state, setState] = useState<RouteSearchState>({ isLoading: false, error: null });
+  const search = useCallback(async (origin: RouteEndpoint, destination: RouteEndpoint) => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
-  const searchRoute = useCallback(
-    async (origin: string, destination: string): Promise<Route | null> => {
-      setState({ isLoading: true, error: null });
+    setLoading(true);
+    setError(null);
 
-      try {
-        const route = await getRoute(origin, destination);
-        setState({ isLoading: false, error: null });
-        return route;
-      } catch (error) {
-        const message = error instanceof RouteServiceError ? error.message : GENERIC_ERROR;
-        setState({ isLoading: false, error: message });
-        return null;
-      }
-    },
-    [],
-  );
+    try {
+      return await getRouteOptions(origin, destination, controller.signal);
+    } catch (caught) {
+      if (controller.signal.aborted) return null;
+      setError(caught instanceof RouteServiceError ? caught.message : GENERIC_ERROR);
+      return null;
+    } finally {
+      if (controllerRef.current === controller) setLoading(false);
+    }
+  }, []);
 
-  return { ...state, searchRoute };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { loading, error, search, clearError };
 }
