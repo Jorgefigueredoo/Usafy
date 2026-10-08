@@ -16,12 +16,20 @@ const HIGH_RISK_VIBRATION_MS = [200, 120, 200];
 
 export type NavigationPhase = 'waiting' | 'navigating' | 'rerouting' | 'arrived';
 
+/** Como a viagem começou: base do resumo de chegada (a rota pode ser recalculada no caminho). */
+export interface NavigationTrip {
+  startedAt: number;
+  route: Route;
+}
+
 export interface NavigationState {
   active: boolean;
   phase: NavigationPhase;
   /** A câmera acompanha o usuário? Vira `false` quando ele arrasta o mapa. */
   following: boolean;
   progress: NavigationProgress | null;
+  /** `null` antes de iniciar a navegação. */
+  trip: NavigationTrip | null;
   /** Problema a mostrar no banner (GPS negado, falha ao recalcular...). */
   message: string | null;
   start: () => void;
@@ -35,6 +43,7 @@ export function useNavigation(route: Route): NavigationState {
   const location = useUserLocation();
 
   const [active, setActive] = useState(false);
+  const [trip, setTrip] = useState<NavigationTrip | null>(null);
   const [following, setFollowing] = useState(true);
   const [rerouting, setRerouting] = useState(false);
   const [rerouteError, setRerouteError] = useState<string | null>(null);
@@ -109,7 +118,8 @@ export function useNavigation(route: Route): NavigationState {
     setRerouteError(null);
     setFollowing(true);
     setActive(true);
-  }, [location]);
+    setTrip({ startedAt: Date.now(), route });
+  }, [location, route]);
 
   const stop = useCallback(() => {
     setActive(false);
@@ -128,5 +138,5 @@ export function useNavigation(route: Route): NavigationState {
   const message =
     active && location.status === 'error' && !location.position ? location.error : rerouteError;
 
-  return { active, phase, following, progress, message, start, stop, recenter, pauseFollowing };
+  return { active, phase, following, progress, trip, message, start, stop, recenter, pauseFollowing };
 }
