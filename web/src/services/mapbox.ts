@@ -71,9 +71,7 @@ function parseSteps(legs: unknown): DirectionsStep[] {
   });
 }
 
-function parseDirections(body: unknown): Directions | null {
-  if (!isObject(body) || !Array.isArray(body.routes)) return null;
-  const route: unknown = body.routes[0];
+function parseRoute(route: unknown): Directions | null {
   if (!isObject(route) || !isObject(route.geometry)) return null;
 
   const { coordinates } = route.geometry;
@@ -86,6 +84,14 @@ function parseDirections(body: unknown): Directions | null {
     durationSeconds: route.duration,
     steps: parseSteps(route.legs),
   };
+}
+
+/** Todas as rotas válidas da resposta, na ordem do Mapbox (a primeira é a recomendada). */
+function parseDirections(body: unknown): Directions[] {
+  if (!isObject(body) || !Array.isArray(body.routes)) return [];
+  return body.routes
+    .map(parseRoute)
+    .filter((route): route is Directions => route !== null && route.geometry.length >= 2);
 }
 
 // ---------------------------------------------------------------------------
@@ -142,11 +148,15 @@ export async function geocode(query: string, signal?: AbortSignal): Promise<Plac
   return place;
 }
 
+/**
+ * Caminhos de `from` até `to`. Com `alternatives`, o Mapbox devolve até 3 opções (às vezes
+ * só 1, quando não há caminho razoavelmente diferente).
+ */
 export async function getDirections(
   from: Coordinate,
   to: Coordinate,
-  signal?: AbortSignal,
-): Promise<Directions> {
+  { alternatives = false, signal }: { alternatives?: boolean; signal?: AbortSignal } = {},
+): Promise<Directions[]> {
   const params = new URLSearchParams({
     access_token: requireToken(),
     geometries: 'geojson',
@@ -155,13 +165,14 @@ export async function getDirections(
     overview: 'full',
     steps: 'true',
     language: 'pt-BR',
+    alternatives: String(alternatives),
   });
   const url = `${DIRECTIONS_URL}/${from.join(',')};${to.join(',')}?${params.toString()}`;
 
   const { body } = await fetchJson(url, signal);
   const directions = parseDirections(body);
 
-  if (!directions || directions.geometry.length < 2) {
+  if (directions.length === 0) {
     throw new RouteServiceError(
       'Não encontramos um caminho de moto entre esses dois pontos. Tente outro endereço.',
     );
