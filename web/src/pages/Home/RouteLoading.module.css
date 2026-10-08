@@ -1,0 +1,146 @@
+/* Escurece o mapa (e cobre os botões flutuantes durante o cálculo) com o cartão no centro. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--color-scrim);
+  animation: fade-in 200ms ease-out;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: calc(var(--layout-max-content-width) / 1.6);
+  padding: var(--space-lg) var(--space-md);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 var(--space-sm) var(--space-lg) var(--color-shadow);
+}
+
+/* Medidas de traço em unidades do viewBox 120 × 40. */
+.route {
+  width: 100%;
+  max-width: calc(var(--space-xxl) * 3);
+  margin-bottom: var(--space-sm);
+}
+
+.route path,
+.route circle {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: var(--color-border);
+  stroke-width: 4;
+}
+
+/* Rota desenhando em loop, nas cores de risco (do seguro ao alerta). */
+.trace {
+  stroke: var(--risk-low-fill);
+  stroke-width: 4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation:
+    draw 1.6s ease-in-out infinite,
+    tint 4.8s steps(1) infinite;
+}
+
+.route .origin {
+  fill: var(--color-primary);
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+}
+
+.route .destination {
+  fill: var(--color-accent);
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-subtitle-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-subtitle-line);
+  text-align: center;
+}
+
+.step {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  animation: step-in 250ms ease-out;
+}
+
+.dots {
+  display: flex;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dot,
+.dotDone {
+  width: var(--space-lg);
+  height: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  transition: background-color 0.3s ease;
+}
+
+.dotDone {
+  background: var(--color-accent);
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes tint {
+  0% {
+    stroke: var(--risk-low-fill);
+  }
+  33% {
+    stroke: var(--risk-medium-fill);
+  }
+  66% {
+    stroke: var(--color-primary);
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-xs));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
