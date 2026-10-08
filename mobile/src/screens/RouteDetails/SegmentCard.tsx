@@ -1,8 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Spacer } from '@/components/layout';
-import { Card, RiskBadge, RiskBar, Text } from '@/components/ui';
-import { colors, riskToneColors, spacing } from '@/theme';
+import { Card, Icon, RiskBadge, RiskBar, Text } from '@/components/ui';
+import { colors, layout, riskToneColors, spacing } from '@/theme';
 import type { RouteSegment } from '@/types';
 import { formatDistanceMeters, formatScore } from '@/utils/format';
 
@@ -12,9 +12,10 @@ export interface SegmentCardProps {
   segment: RouteSegment;
   /** Posição do trecho no trajeto, começando em 1. */
   position: number;
+  onShowOnMap: () => void;
 }
 
-export function SegmentCard({ segment, position }: SegmentCardProps) {
+export function SegmentCard({ segment, position, onShowOnMap }: SegmentCardProps) {
   return (
     <Card>
       <View style={styles.header}>
@@ -45,6 +46,20 @@ export function SegmentCard({ segment, position }: SegmentCardProps) {
           <FactorRow key={factor.type} factor={factor} />
         ))}
       </View>
+
+      {/* Leva ao mapa com este trecho em destaque (mesmo efeito da faixa de risco). */}
+      <Pressable
+        onPress={onShowOnMap}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver o trecho ${position} no mapa`}
+        style={({ pressed }) => [styles.showOnMap, pressed && styles.showOnMapPressed]}
+      >
+        <Icon name="pin" size={layout.iconSm} color={colors.accent} />
+        <Text color={colors.accent} style={styles.showOnMapText}>
+          Ver no mapa
+        </Text>
+        <Icon name="chevronRight" size={layout.iconSm} color={colors.accent} />
+      </Pressable>
     </Card>
   );
 }
@@ -70,5 +85,21 @@ const styles = StyleSheet.create({
   },
   factors: {
     gap: spacing.sm,
+  },
+  showOnMap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    minHeight: layout.touchTarget - spacing.sm,
+    marginTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  showOnMapPressed: {
+    opacity: 0.7,
+  },
+  showOnMapText: {
+    flex: 1,
+    fontWeight: '600',
   },
 });
