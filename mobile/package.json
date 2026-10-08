@@ -1,16 +1,21 @@
 {
   "name": "usafy",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "expo-router/entry",
   "dependencies": {
     "@react-navigation/native": "^7.5.0",
-    "@react-navigation/native-stack": "^7.20.0",
     "@rnmapbox/maps": "^10.3.5",
-    "expo": "~57.0.26",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
+    "expo-linking": "~57.0.12",
+    "expo-location": "~57.0.20",
+    "expo-router": "~57.0.25",
+    "expo-sqlite": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -42,6 +47,9 @@
     },
     "setupFiles": [
       "<rootDir>/jest.setup.ts"
+    ],
+    "modulePaths": [
+      "<rootDir>/node_modules/expo/node_modules"
     ]
   }
 }
