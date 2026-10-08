@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
 import { MapThemePicker } from '@/components/map';
 import { Icon } from '@/components/ui';
-import { useCurrentRoute, useNavigation, useUserLocation } from '@/hooks';
-import { paths } from '@/paths';
+import { useCurrentRoute, useNavigation, useUserLocation, useVoiceGuidance } from '@/hooks';
+import { paths, segmentIdFromState } from '@/paths';
 import type { Route } from '@/types';
 
 import { ArrivalPanel } from './ArrivalPanel';
@@ -32,8 +32,19 @@ function RouteScreen({ route, alternatives, onChangeRoute }: RouteScreenProps) {
   const { coordinate: userLocation } = useUserLocation();
   const navigation = useNavigation(route);
   const { progress, following } = navigation;
+  const voice = useVoiceGuidance({
+    route,
+    active: navigation.active,
+    phase: navigation.phase,
+    progress,
+  });
   /** Trecho tocado na faixa de risco (só na visão geral). */
-  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const routerLocation = useLocation();
+  // Vindo de "Ver no mapa" nos detalhes: abre com aquele trecho já em destaque.
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(() => {
+    const fromDetails = segmentIdFromState(routerLocation.state);
+    return route.segments.some((segment) => segment.id === fromDetails) ? fromDetails : null;
+  });
 
   const selectRoute = useCallback(
     (routeId: string) => {
@@ -48,6 +59,8 @@ function RouteScreen({ route, alternatives, onChangeRoute }: RouteScreenProps) {
 
   const startNavigation = () => {
     setSelectedSegmentId(null);
+    // Dentro do toque: no iOS a síntese de voz só é liberada a partir de um gesto do usuário.
+    voice.announceStart();
     navigation.start();
   };
 
@@ -98,6 +111,18 @@ function RouteScreen({ route, alternatives, onChangeRoute }: RouteScreenProps) {
           />
         )}
 
+        {navigation.active && voice.supported && (
+          <button
+            type="button"
+            className={styles.voiceToggle}
+            onClick={voice.toggle}
+            aria-pressed={voice.enabled}
+            aria-label={voice.enabled ? 'Desligar instruções por voz' : 'Ligar instruções por voz'}
+          >
+            <Icon name={voice.enabled ? 'volume' : 'volumeOff'} />
+          </button>
+        )}
+
         {navigation.active && navigationView && !following && (
           <button type="button" className={styles.recenter} onClick={navigation.recenter}>
             <Icon name="navigate" />
@@ -109,9 +134,17 @@ function RouteScreen({ route, alternatives, onChangeRoute }: RouteScreenProps) {
       {navigation.active ? (
         <section className={styles.panel} aria-label="Progresso da navegação">
           {navigation.phase === 'arrived' ? (
-            <ArrivalPanel destination={route.destination} onFinish={navigation.stop} />
+            <ArrivalPanel
+              route={route}
+              trip={navigation.trip}
+              onFinish={navigation.stop}
+              onNewSearch={() => {
+                navigation.stop();
+                navigate(paths.home);
+              }}
+            />
           ) : (
-            <NavigationPanel progress={progress} onStop={navigation.stop} />
+            <NavigationPanel route={route} progress={progress} onStop={navigation.stop} />
           )}
         </section>
       ) : (
