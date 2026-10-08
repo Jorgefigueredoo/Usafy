@@ -1,13 +1,9 @@
 import type { RiskFactorType, RiskLevel } from '@/types';
 
-/** Limites superiores (exclusivos) de cada faixa de score. */
-const MEDIUM_RISK_THRESHOLD = 34;
-const HIGH_RISK_THRESHOLD = 67;
+/** Limites inferiores (inclusivos) das faixas de score 0–100. */
+export const MEDIUM_RISK_THRESHOLD = 34;
+export const HIGH_RISK_THRESHOLD = 67;
 
-/**
- * Converte um score 0–100 em nível. Mantido aqui, e não no backend, para que
- * mock e API real classifiquem exatamente do mesmo jeito.
- */
 export function riskLevelFromScore(score: number): RiskLevel {
   if (score < MEDIUM_RISK_THRESHOLD) return 'low';
   if (score < HIGH_RISK_THRESHOLD) return 'medium';
