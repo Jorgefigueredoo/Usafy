@@ -32,6 +32,8 @@ export interface RouteMapProps {
   navigation?: RouteNavigationView | null;
   /** Usuário arrastou ou deu zoom no mapa (para pausar o "seguir"). */
   onUserGesture?: () => void;
+  /** Trecho tocado na faixa de risco: fica em destaque e a câmera enquadra só ele. */
+  highlightedSegmentId?: string | null;
 }
 
 const ROUTE_SOURCE = 'route-segments';
@@ -44,6 +46,15 @@ const GLOW_BLUR = spacing.sm;
 const GLOW_OPACITY = 0.45;
 /** Trecho da rota escondido atrás de prédios 3D continua aparecendo, só mais apagado. */
 const OCCLUDED_OPACITY = 0.4;
+/**
+ * Trecho em destaque: o halo fica só nele, mais largo e forte, e os demais trechos ficam
+ * cinza. Halo da cor do risco (não branco) para aparecer tanto no mapa claro quanto no escuro.
+ */
+const HIGHLIGHT_GLOW_WIDTH = GLOW_WIDTH + spacing.sm;
+const HIGHLIGHT_GLOW_OPACITY = 0.7;
+/** Ao enquadrar um trecho curto, não chega tão perto a ponto de perder o contexto. */
+const OVERVIEW_MAX_ZOOM = 16;
+const OVERVIEW_DURATION_MS = 800;
 
 /** Folga ao enquadrar a rota: em cima fica o header flutuante, embaixo o painel. */
 const FIT_PADDING = {
@@ -69,12 +80,14 @@ function boundsOf(line: Coordinate[]): mapboxgl.LngLatBounds {
   );
 }
 
-function segmentsAsGeoJson(route: Route): FeatureCollection<LineString, { riskLevel: RiskLevel }> {
+function segmentsAsGeoJson(
+  route: Route,
+): FeatureCollection<LineString, { id: string; riskLevel: RiskLevel }> {
   return {
     type: 'FeatureCollection',
     features: route.segments.map((segment) => ({
       type: 'Feature',
-      properties: { riskLevel: segment.riskLevel },
+      properties: { id: segment.id, riskLevel: segment.riskLevel },
       geometry: { type: 'LineString', coordinates: segment.coordinates },
     })),
   };
@@ -146,11 +159,39 @@ function addRouteLayers(map: mapboxgl.Map, route: Route, traveled: Coordinate[])
   });
 }
 
+/**
+ * Destaca um trecho (ou nenhum, com `null`). Muda cor e filtro em vez de opacidade por
+ * trecho: opacidade variável desligaria o efeito de oclusão atrás dos prédios 3D.
+ */
+function applyHighlight(map: mapboxgl.Map, segmentId: string | null): void {
+  if (!map.getLayer('route-glow')) return;
+
+  if (!segmentId) {
+    map.setFilter('route-glow', null);
+    map.setPaintProperty('route-glow', 'line-width', GLOW_WIDTH);
+    map.setPaintProperty('route-glow', 'line-opacity', GLOW_OPACITY);
+    map.setPaintProperty('route-risk', 'line-color', RISK_COLOR);
+    return;
+  }
+
+  const isSelected: mapboxgl.ExpressionSpecification = ['==', ['get', 'id'], segmentId];
+  map.setFilter('route-glow', isSelected);
+  map.setPaintProperty('route-glow', 'line-width', HIGHLIGHT_GLOW_WIDTH);
+  map.setPaintProperty('route-glow', 'line-opacity', HIGHLIGHT_GLOW_OPACITY);
+  map.setPaintProperty('route-risk', 'line-color', ['case', isSelected, RISK_COLOR, colors.textSecondary]);
+}
+
 function setLineData(map: mapboxgl.Map, sourceId: string, data: Feature | FeatureCollection): void {
   map.getSource<GeoJSONSource>(sourceId)?.setData(data);
 }
 
-export function RouteMap({ route, userLocation = null, navigation = null, onUserGesture }: RouteMapProps) {
+export function RouteMap({
+  route,
+  userLocation = null,
+  navigation = null,
+  onUserGesture,
+  highlightedSegmentId = null,
+}: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -162,6 +203,9 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
   /** Dados mais recentes, para redesenhar a rota quando o estilo do mapa é trocado. */
   const routeRef = useRef(route);
   const traveledRef = useRef<Coordinate[]>([]);
+  const highlightedRef = useRef(highlightedSegmentId);
+  /** Reenquadra a visão geral; `null` durante a navegação (a câmera segue o usuário). */
+  const frameOverviewRef = useRef<((durationMs: number) => void) | null>(null);
 
   // A rota inicial só serve para montar o mapa; trocas de rota (recálculo) atualizam os dados.
   const [initialRoute] = useState(route);
@@ -180,6 +224,12 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
   }, [route]);
 
   useEffect(() => {
+    highlightedRef.current = highlightedSegmentId;
+    const map = mapRef.current;
+    if (map && ready) applyHighlight(map, highlightedSegmentId);
+  }, [highlightedSegmentId, ready]);
+
+  useEffect(() => {
     const container = containerRef.current;
     const start = initialRoute.geometry[0];
     const end = initialRoute.geometry[initialRoute.geometry.length - 1];
@@ -193,8 +243,17 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
     onMapFatalError(map, () => setFailed(true));
     map.on('style.load', () => {
       addRouteLayers(map, routeRef.current, traveledRef.current);
+      applyHighlight(map, highlightedRef.current);
       setReady(true);
     });
+
+    // O painel de baixo muda de altura (abre/fecha, navegação): o mapa acompanha e, na visão
+    // geral, a rota continua enquadrada no espaço que sobrou.
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+      frameOverviewRef.current?.(0);
+    });
+    resizeObserver.observe(container);
 
     // Só gestos do usuário pausam o "seguir" — os movimentos que a própria câmera faz não.
     const notifyGesture = () => onUserGestureRef.current?.();
@@ -213,6 +272,7 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
 
     // map.remove() também remove os marcadores presos a ele.
     return () => {
+      resizeObserver.disconnect();
       cancelAnimationRef.current?.();
       map.remove();
       setReady(false);
@@ -236,15 +296,32 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
     destinationMarkerRef.current?.setLngLat(end);
   }, [route, ready]);
 
-  // Fora da navegação: visão geral da rota, com o mapa "deitado" e o norte para cima.
+  // Fora da navegação: visão geral com o mapa "deitado" e o norte para cima, enquadrando a
+  // rota inteira ou só o trecho escolhido na faixa de risco.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !ready || navigating) return;
+    if (!map || !ready || navigating) {
+      frameOverviewRef.current = null;
+      return;
+    }
+
+    const segment = route.segments.find((item) => item.id === highlightedSegmentId);
+    const target = segment && segment.coordinates.length > 0 ? segment.coordinates : route.geometry;
+    const frame = (durationMs: number) => {
+      map.setPadding(NO_PADDING);
+      map.fitBounds(boundsOf(target), {
+        padding: FIT_PADDING,
+        pitch: 0,
+        bearing: 0,
+        maxZoom: OVERVIEW_MAX_ZOOM,
+        duration: durationMs,
+      });
+    };
+    frameOverviewRef.current = frame;
 
     map.resize();
-    map.setPadding(NO_PADDING);
-    map.fitBounds(boundsOf(route.geometry), { padding: FIT_PADDING, pitch: 0, bearing: 0, duration: 800 });
-  }, [route, ready, navigating]);
+    frame(OVERVIEW_DURATION_MS);
+  }, [route, ready, navigating, highlightedSegmentId]);
 
   // Entrar/sair da navegação muda o tamanho do painel inferior. Os botões +/− só aparecem
   // na visão geral: durante a navegação, a câmera seguindo desfaria o zoom deles.
