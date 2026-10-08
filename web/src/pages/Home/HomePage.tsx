@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
-import { Button, Card, Icon, Logo } from '@/components/ui';
+import { Button, Icon } from '@/components/ui';
 import { useCurrentRoute, useRouteSearch, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
 import type { RouteEndpoint } from '@/services/routeService';
@@ -21,7 +21,22 @@ const HomeMap = lazy(() => import('./HomeMap'));
 const FORM_ID = 'route-search-form';
 const CURRENT_LOCATION_LABEL = 'Minha localização';
 
-const RECIFE_NEIGHBORHOODS = ['Boa Viagem', 'Pina', 'Graças', 'Casa Amarela', 'Santo Amaro'] as const;
+const RECIFE_NEIGHBORHOODS = [
+  'Boa Viagem',
+  'Pina',
+  'Graças',
+  'Casa Amarela',
+  'Santo Amaro',
+  'Recife Antigo',
+  'Madalena',
+] as const;
+
+function greeting(date: Date): string {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return 'Bom dia';
+  if (hour >= 12 && hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
 
 /**
  * - `auto`: usa a localização como origem assim que ela existir (permissão já concedida).
@@ -127,14 +142,18 @@ export function HomePage() {
       </div>
 
       <main className={styles.panel}>
-        <Header subtitle="Usafy" title="Para onde vamos?" trailing={<Logo size="sm" />} />
+        <Header subtitle={greeting(new Date())} title="Para onde vamos?" />
 
         <form id={FORM_ID} className={styles.form} onSubmit={handleSubmit} noValidate>
-          <Card>
+          <div className={cx(styles.searchCard, suggestionsOpen && styles.searchCardOpen)}>
             <div className={styles.fields}>
               <PlaceField
                 label="Origem"
-                icon={usingCurrentLocation ? 'locate' : 'pin'}
+                leading={
+                  <span
+                    className={cx(styles.originMarker, usingCurrentLocation && styles.originMarkerLive)}
+                  />
+                }
                 placeholder="Ex.: Shopping Recife"
                 value={origin}
                 displayText={usingCurrentLocation ? currentLocationText : undefined}
@@ -168,21 +187,10 @@ export function HomePage() {
                   )
                 }
               />
-              {/* Some com a lista aberta: ela empurra os campos e o botão ficaria fora do lugar. */}
-              {!suggestionsOpen && (
-                <button
-                  type="button"
-                  className={styles.swap}
-                  onClick={swap}
-                  disabled={loading || usingCurrentLocation || (!origin.text && !destination.text)}
-                  aria-label="Inverter origem e destino"
-                >
-                  <Icon name="swap" size={layout.iconSm} />
-                </button>
-              )}
+              <div className={styles.divider} aria-hidden="true" />
               <PlaceField
                 label="Destino"
-                icon="flag"
+                leading={<span className={styles.destinationMarker} />}
                 placeholder="Ex.: RioMar, hospital, rua..."
                 value={destination}
                 onChange={updateDestination}
@@ -192,7 +200,19 @@ export function HomePage() {
                 enterKeyHint="go"
               />
             </div>
-          </Card>
+            {/* Some com a lista aberta: os campos ganham a largura toda para as sugestões. */}
+            {!suggestionsOpen && (
+              <button
+                type="button"
+                className={styles.swap}
+                onClick={swap}
+                disabled={loading || usingCurrentLocation || (!origin.text && !destination.text)}
+                aria-label="Inverter origem e destino"
+              >
+                <Icon name="swap" size={layout.iconSm} />
+              </button>
+            )}
+          </div>
 
           {/* Logo abaixo dos campos: mais embaixo o botão fixo do rodapé cobriria a mensagem. */}
           {locationError && <ErrorMessage message={locationError} />}
