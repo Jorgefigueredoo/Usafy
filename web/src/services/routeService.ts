@@ -2,7 +2,7 @@ import type { Coordinate, Maneuver, ManeuverDirection, Route, RouteSegment } fro
 import { riskLevelFromScore } from '@/utils/risk';
 import { splitLineByDistance } from '@/utils/geo';
 
-import { geocode, getDirections, type DirectionsStep } from './mapbox';
+import { geocode, getDirections, type Directions, type DirectionsStep } from './mapbox';
 import { isInsideRecifeMetro } from './mapboxConfig';
 import { createSeededRandom, mockSegmentRisk } from './riskMock';
 import { RouteServiceError } from './routeServiceError';
@@ -73,30 +73,41 @@ function nameForRange(steps: DirectionsStep[], start: number, end: number, posit
   return bestName || `Trecho ${position}`;
 }
 
-export async function getRoute(
+async function fetchDirections(
   origin: RouteEndpoint,
   destination: RouteEndpoint,
+  alternatives: boolean,
   signal?: AbortSignal,
-): Promise<Route> {
+): Promise<{ from: ResolvedEndpoint; to: ResolvedEndpoint; options: Directions[] }> {
   const [from, to] = await Promise.all([
     resolveEndpoint(origin, signal),
     resolveEndpoint(destination, signal),
   ]);
 
-  const directions = await getDirections(from.coordinate, to.coordinate, signal);
+  const options = await getDirections(from.coordinate, to.coordinate, { alternatives, signal });
 
-  if (directions.distanceMeters < 1) {
+  if (options.every((directions) => directions.distanceMeters < 1)) {
     throw new RouteServiceError('Origem e destino apontam para o mesmo lugar. Revise os endereços.');
   }
+  return { from, to, options };
+}
 
+/** `variant` diferencia o risco simulado de cada alternativa (0 = rota principal). */
+function buildRoute(
+  from: ResolvedEndpoint,
+  to: ResolvedEndpoint,
+  directions: Directions,
+  variant: number,
+): Route {
   const segmentCount = segmentCountFor(directions.distanceMeters);
   const pieces = splitLineByDistance(directions.geometry, segmentCount);
   const segmentDistance = directions.distanceMeters / pieces.length;
   // Semente pelas coordenadas (~100 m de precisão), não pelo texto: "Minha localização"
   // em lugares diferentes precisa gerar riscos diferentes.
-  const random = createSeededRandom(
-    [from.coordinate, to.coordinate].map((point) => point.map((n) => n.toFixed(3)).join(',')).join('|'),
-  );
+  const seed = [from.coordinate, to.coordinate]
+    .map((point) => point.map((n) => n.toFixed(3)).join(','))
+    .join('|');
+  const random = createSeededRandom(variant === 0 ? seed : `${seed}#${variant}`);
 
   // TODO: substituir risco mockado por cálculo real quando o backend Spring Boot estiver pronto.
   const segments: RouteSegment[] = pieces.map((coordinates, index) => {
@@ -128,6 +139,28 @@ export async function getRoute(
     segments,
     maneuvers: buildManeuvers(directions.steps),
   };
+}
+
+/** Uma única rota (a recomendada pelo Mapbox). Usada no recálculo durante a navegação. */
+export async function getRoute(
+  origin: RouteEndpoint,
+  destination: RouteEndpoint,
+  signal?: AbortSignal,
+): Promise<Route> {
+  const { from, to, options } = await fetchDirections(origin, destination, false, signal);
+  const [main] = options;
+  if (!main) throw new RouteServiceError('Não foi possível calcular a rota agora.');
+  return buildRoute(from, to, main, 0);
+}
+
+/** Todas as opções de caminho (1 a 3), cada uma com o próprio risco, para o usuário comparar. */
+export async function getRouteOptions(
+  origin: RouteEndpoint,
+  destination: RouteEndpoint,
+  signal?: AbortSignal,
+): Promise<Route[]> {
+  const { from, to, options } = await fetchDirections(origin, destination, true, signal);
+  return options.map((directions, index) => buildRoute(from, to, directions, index));
 }
 
 function directionOf(type: string, modifier: string): ManeuverDirection {
