@@ -23,7 +23,14 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'globe'
-  | 'check';
+  | 'check'
+  | 'volume'
+  | 'volumeOff'
+  | 'home'
+  | 'work'
+  | 'plus'
+  | 'edit'
+  | 'share';
 
 export interface IconProps {
   name: IconName;
@@ -139,6 +146,41 @@ const ICON_SHAPES: Record<IconName, IconShape[]> = {
     { kind: 'path', d: 'M12 3.6c2.3 2.3 3.4 5.1 3.4 8.4s-1.1 6.1-3.4 8.4c-2.3-2.3-3.4-5.1-3.4-8.4S9.7 5.9 12 3.6Z' },
   ],
   check: [{ kind: 'path', d: 'm5 12.5 4.4 4.4L19 7.3' }],
+  volume: [
+    { kind: 'path', d: 'M4 9.6h3.4L12 5.6v12.8l-4.6-4H4z' },
+    { kind: 'path', d: 'M15.4 9a4.2 4.2 0 0 1 0 6' },
+    { kind: 'path', d: 'M17.9 6.4a7.8 7.8 0 0 1 0 11.2' },
+  ],
+  home: [
+    { kind: 'path', d: 'M4 11.2 12 4.4l8 6.8' },
+    { kind: 'path', d: 'M6.2 9.6v9.8h11.6V9.6' },
+    { kind: 'path', d: 'M10 19.4v-5.2h4v5.2' },
+  ],
+  work: [
+    { kind: 'path', d: 'M4 8.4h16v10.8H4z' },
+    { kind: 'path', d: 'M9 8.4V6.2c0-.7.5-1.2 1.2-1.2h3.6c.7 0 1.2.5 1.2 1.2v2.2' },
+    { kind: 'path', d: 'M4 13h16' },
+  ],
+  plus: [
+    { kind: 'path', d: 'M12 5.5v13' },
+    { kind: 'path', d: 'M5.5 12h13' },
+  ],
+  edit: [
+    { kind: 'path', d: 'M14.8 5.6 18.4 9.2 9 18.6l-4.2.6.6-4.2 9.4-9.4Z' },
+    { kind: 'path', d: 'm13 7.4 3.6 3.6' },
+  ],
+  share: [
+    { kind: 'circle', cx: 17.5, cy: 5.8, r: 2.4 },
+    { kind: 'circle', cx: 6.5, cy: 12, r: 2.4 },
+    { kind: 'circle', cx: 17.5, cy: 18.2, r: 2.4 },
+    { kind: 'path', d: 'm8.6 10.8 6.8-3.8' },
+    { kind: 'path', d: 'm8.6 13.2 6.8 3.8' },
+  ],
+  volumeOff: [
+    { kind: 'path', d: 'M4 9.6h3.4L12 5.6v12.8l-4.6-4H4z' },
+    { kind: 'path', d: 'm15.6 9.6 4.8 4.8' },
+    { kind: 'path', d: 'm20.4 9.6-4.8 4.8' },
+  ],
 };
 
 export function Icon({ name, size = layout.iconMd, strokeWidth = 1.8, className }: IconProps) {
