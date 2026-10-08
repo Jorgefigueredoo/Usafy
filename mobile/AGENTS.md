@@ -27,6 +27,14 @@ Run lint, typecheck and tests before declaring any task done.
 Pure logic (types, risk mock, route choice, geometry) is duplicated from `web/` on purpose — the
 projects never import each other. When changing one side, port the change and its test to the other.
 
+- Storage: `src/app/_layout.tsx` installs `expo-sqlite/localStorage`, so code that uses
+  `localStorage` (saved places, map theme, onboarding seen) works the same as in `web/`.
+- Jest: `jest.modulePaths` points at `node_modules/expo/node_modules` because npm nests
+  `expo-modules-core` there (optional peer conflict with the `react-native-worklets` that
+  expo-router brings). Metro and autolinking resolve it fine; only Jest needs the hint.
+- `react-dom` is pinned to the same version as `react`: expo-router's web components need it, and
+  without the pin npm installs a newer one that conflicts with the SDK's `react`.
+
 ## Navigation & Routing
 
 - Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
