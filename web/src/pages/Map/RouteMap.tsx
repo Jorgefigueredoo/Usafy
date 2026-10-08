@@ -2,7 +2,14 @@ import type { Feature, FeatureCollection, LineString } from 'geojson';
 import mapboxgl, { type GeoJSONSource } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 
-import { animateMarker, createMap, createMarker, MapFallback, onMapFatalError } from '@/components/map';
+import {
+  animateMarker,
+  createMap,
+  createMarker,
+  MapFallback,
+  onMapFatalError,
+  useMapAppearance,
+} from '@/components/map';
 import { MAPBOX_TOKEN } from '@/services/mapboxConfig';
 import { colors, riskFillColors, spacing } from '@/theme';
 import type { Coordinate, RiskLevel, Route } from '@/types';
@@ -31,6 +38,12 @@ const ROUTE_SOURCE = 'route-segments';
 const TRAVELED_SOURCE = 'route-traveled';
 const LINE_WIDTH = 6;
 const CASING_WIDTH = LINE_WIDTH + spacing.xs;
+/** Halo desfocado da cor do risco por baixo da linha: destaca a rota em qualquer tema. */
+const GLOW_WIDTH = LINE_WIDTH + spacing.md;
+const GLOW_BLUR = spacing.sm;
+const GLOW_OPACITY = 0.45;
+/** Trecho da rota escondido atrás de prédios 3D continua aparecendo, só mais apagado. */
+const OCCLUDED_OPACITY = 0.4;
 
 /** Folga ao enquadrar a rota: em cima fica o header flutuante, embaixo o painel. */
 const FIT_PADDING = {
@@ -71,48 +84,65 @@ function lineFeature(coordinates: Coordinate[]): Feature<LineString> {
   return { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates } };
 }
 
-function addRouteLayers(map: mapboxgl.Map, route: Route): void {
-  map.addSource(ROUTE_SOURCE, { type: 'geojson', data: segmentsAsGeoJson(route) });
-  map.addSource(TRAVELED_SOURCE, { type: 'geojson', data: lineFeature([]) });
+const RISK_COLOR: mapboxgl.ExpressionSpecification = [
+  'match',
+  ['get', 'riskLevel'],
+  'low',
+  riskFillColors.low,
+  'medium',
+  riskFillColors.medium,
+  'high',
+  riskFillColors.high,
+  colors.primary,
+];
 
-  const lineLayout = { 'line-cap': 'round', 'line-join': 'round' } as const;
+/**
+ * Desenha a rota. Chamado a cada carga de estilo: trocar o tema para/de Satélite recarrega o
+ * estilo e apaga as camadas próprias.
+ */
+function addRouteLayers(map: mapboxgl.Map, route: Route, traveled: Coordinate[]): void {
+  if (map.getSource(ROUTE_SOURCE)) return;
+  map.addSource(ROUTE_SOURCE, { type: 'geojson', data: segmentsAsGeoJson(route) });
+  map.addSource(TRAVELED_SOURCE, { type: 'geojson', data: lineFeature(traveled) });
+
+  // `middle`: acima das ruas e abaixo dos rótulos e dos prédios 3D do estilo Standard.
+  const base = { type: 'line', slot: 'middle', layout: { 'line-cap': 'round', 'line-join': 'round' } } as const;
+  // Emissiva: a iluminação de entardecer/noite do Standard não escurece as cores de risco.
+  const lit = { 'line-emissive-strength': 1, 'line-occlusion-opacity': OCCLUDED_OPACITY } as const;
 
   map.addLayer({
-    id: 'route-casing',
-    type: 'line',
+    ...base,
+    id: 'route-glow',
     source: ROUTE_SOURCE,
-    layout: lineLayout,
-    paint: { 'line-color': colors.background, 'line-width': CASING_WIDTH },
+    paint: {
+      ...lit,
+      'line-color': RISK_COLOR,
+      'line-width': GLOW_WIDTH,
+      'line-blur': GLOW_BLUR,
+      'line-opacity': GLOW_OPACITY,
+    },
   });
 
   map.addLayer({
-    id: 'route-risk',
-    type: 'line',
+    ...base,
+    id: 'route-casing',
     source: ROUTE_SOURCE,
-    layout: lineLayout,
-    paint: {
-      'line-width': LINE_WIDTH,
-      'line-color': [
-        'match',
-        ['get', 'riskLevel'],
-        'low',
-        riskFillColors.low,
-        'medium',
-        riskFillColors.medium,
-        'high',
-        riskFillColors.high,
-        colors.primary,
-      ],
-    },
+    paint: { ...lit, 'line-color': colors.background, 'line-width': CASING_WIDTH },
+  });
+
+  map.addLayer({
+    ...base,
+    id: 'route-risk',
+    source: ROUTE_SOURCE,
+    paint: { ...lit, 'line-width': LINE_WIDTH, 'line-color': RISK_COLOR },
   });
 
   // Por cima da rota: o que já foi percorrido fica apagado, como no Google Maps.
   map.addLayer({
+    ...base,
     id: 'route-traveled',
-    type: 'line',
     source: TRAVELED_SOURCE,
-    layout: lineLayout,
-    paint: { 'line-color': colors.textSecondary, 'line-width': LINE_WIDTH, 'line-opacity': 0.55 },
+    paint: { ...lit, 'line-color': colors.textSecondary, 'line-width': LINE_WIDTH, 'line-opacity': 0.55 },
   });
 }
 
@@ -129,6 +159,9 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
   const navigatorMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const cancelAnimationRef = useRef<(() => void) | null>(null);
   const onUserGestureRef = useRef(onUserGesture);
+  /** Dados mais recentes, para redesenhar a rota quando o estilo do mapa é trocado. */
+  const routeRef = useRef(route);
+  const traveledRef = useRef<Coordinate[]>([]);
 
   // A rota inicial só serve para montar o mapa; trocas de rota (recálculo) atualizam os dados.
   const [initialRoute] = useState(route);
@@ -136,9 +169,15 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
   const [failed, setFailed] = useState(false);
   const navigating = navigation !== null;
 
+  useMapAppearance(mapRef, ready);
+
   useEffect(() => {
     onUserGestureRef.current = onUserGesture;
   }, [onUserGesture]);
+
+  useEffect(() => {
+    routeRef.current = route;
+  }, [route]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -152,8 +191,8 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
     });
     mapRef.current = map;
     onMapFatalError(map, () => setFailed(true));
-    map.on('load', () => {
-      addRouteLayers(map, initialRoute);
+    map.on('style.load', () => {
+      addRouteLayers(map, routeRef.current, traveledRef.current);
       setReady(true);
     });
 
@@ -231,6 +270,7 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
     if (!navigation) {
       navigatorMarkerRef.current?.remove();
       navigatorMarkerRef.current = null;
+      traveledRef.current = [];
       setLineData(map, TRAVELED_SOURCE, lineFeature([]));
 
       if (userLocation) {
@@ -259,6 +299,7 @@ export function RouteMap({ route, userLocation = null, navigation = null, onUser
       );
     }
     navigatorMarkerRef.current.setRotation(navigation.bearing);
+    traveledRef.current = navigation.traveled;
     setLineData(map, TRAVELED_SOURCE, lineFeature(navigation.traveled));
 
     if (navigation.following) {
