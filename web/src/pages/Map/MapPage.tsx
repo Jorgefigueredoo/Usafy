@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
@@ -16,22 +16,35 @@ import { RouteMap, type RouteNavigationView } from './RouteMap';
 import { RouteOverviewSheet } from './RouteOverviewSheet';
 
 export default function MapPage() {
-  const { route } = useCurrentRoute();
+  const { route, alternatives, setRoute } = useCurrentRoute();
   if (!route) return <Navigate to={paths.home} replace />;
-  return <RouteScreen route={route} />;
+  return <RouteScreen route={route} alternatives={alternatives} onChangeRoute={setRoute} />;
 }
 
 interface RouteScreenProps {
   route: Route;
+  alternatives: Route[];
+  onChangeRoute: (route: Route) => void;
 }
 
-function RouteScreen({ route }: RouteScreenProps) {
+function RouteScreen({ route, alternatives, onChangeRoute }: RouteScreenProps) {
   const navigate = useNavigate();
   const { coordinate: userLocation } = useUserLocation();
   const navigation = useNavigation(route);
   const { progress, following } = navigation;
   /** Trecho tocado na faixa de risco (só na visão geral). */
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+
+  const selectRoute = useCallback(
+    (routeId: string) => {
+      const next = alternatives.find((option) => option.id === routeId);
+      if (!next || next.id === route.id) return;
+      // Os ids de trecho se repetem entre rotas ("segment-1"...): a seleção não vale na nova.
+      setSelectedSegmentId(null);
+      onChangeRoute(next);
+    },
+    [alternatives, route.id, onChangeRoute],
+  );
 
   const startNavigation = () => {
     setSelectedSegmentId(null);
@@ -62,6 +75,8 @@ function RouteScreen({ route }: RouteScreenProps) {
           navigation={navigationView}
           onUserGesture={navigation.pauseFollowing}
           highlightedSegmentId={navigation.active ? null : selectedSegmentId}
+          alternatives={alternatives}
+          onSelectRoute={selectRoute}
         />
 
         {navigation.active ? (
@@ -103,6 +118,8 @@ function RouteScreen({ route }: RouteScreenProps) {
         <section className={styles.panel} aria-label="Resumo da rota">
           <RouteOverviewSheet
             route={route}
+            alternatives={alternatives}
+            onSelectRoute={selectRoute}
             selectedSegmentId={selectedSegmentId}
             onSelectSegment={setSelectedSegmentId}
             onStartNavigation={startNavigation}
