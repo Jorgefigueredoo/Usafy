@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
 import { MapThemePicker } from '@/components/map';
-import { Button, Icon, Text } from '@/components/ui';
+import { Icon } from '@/components/ui';
 import { useCurrentRoute, useNavigation, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
 import type { Route } from '@/types';
@@ -12,9 +12,8 @@ import { ArrivalPanel } from './ArrivalPanel';
 import styles from './MapPage.module.css';
 import { NavigationBanner } from './NavigationBanner';
 import { NavigationPanel } from './NavigationPanel';
-import { RiskLegend } from './RiskLegend';
 import { RouteMap, type RouteNavigationView } from './RouteMap';
-import { RouteSummaryCard } from './RouteSummaryCard';
+import { RouteOverviewSheet } from './RouteOverviewSheet';
 
 export default function MapPage() {
   const { route } = useCurrentRoute();
@@ -31,6 +30,13 @@ function RouteScreen({ route }: RouteScreenProps) {
   const { coordinate: userLocation } = useUserLocation();
   const navigation = useNavigation(route);
   const { progress, following } = navigation;
+  /** Trecho tocado na faixa de risco (só na visão geral). */
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+
+  const startNavigation = () => {
+    setSelectedSegmentId(null);
+    navigation.start();
+  };
 
   const navigationView = useMemo<RouteNavigationView | null>(
     () =>
@@ -55,6 +61,7 @@ function RouteScreen({ route }: RouteScreenProps) {
           userLocation={userLocation}
           navigation={navigationView}
           onUserGesture={navigation.pauseFollowing}
+          highlightedSegmentId={navigation.active ? null : selectedSegmentId}
         />
 
         {navigation.active ? (
@@ -94,19 +101,12 @@ function RouteScreen({ route }: RouteScreenProps) {
         </section>
       ) : (
         <section className={styles.panel} aria-label="Resumo da rota">
-          <RouteSummaryCard route={route} />
-          <RiskLegend />
-          <Button label="Iniciar navegação" icon="navigate" fullWidth onClick={navigation.start} />
-          <Button
-            label="Ver detalhes"
-            variant="secondary"
-            trailingIcon="chevronRight"
-            fullWidth
-            onClick={() => navigate(paths.routeDetails)}
+          <RouteOverviewSheet
+            route={route}
+            selectedSegmentId={selectedSegmentId}
+            onSelectSegment={setSelectedSegmentId}
+            onStartNavigation={startNavigation}
           />
-          <Text variant="caption" tone="secondary" align="center">
-            Níveis de risco simulados nesta versão de testes.
-          </Text>
         </section>
       )}
     </div>
