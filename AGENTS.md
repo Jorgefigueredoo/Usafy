@@ -21,8 +21,10 @@ task belongs to and work **inside that folder only**.
 
 ## Web
 
-- Commands (from `web/`): `npm run dev`, `npm run typecheck`, `npm run lint`, `npm run build`.
-  Run typecheck and lint before declaring a task done.
+- Commands (from `web/`): `npm run dev`, `npm run typecheck`, `npm run lint`, `npm run test`,
+  `npm run build`. Run typecheck, lint and test before declaring a task done.
+- Tests use Vitest (`vitest.config.ts`) and live next to the code as `*.test.ts`. They cover pure
+  logic (route choice, geometry, voice phrases, saved places); add one when changing that logic.
 - Design tokens live in `web/src/theme/` and are exposed as CSS custom properties at startup. Pages and
   components use CSS Modules with `var(--...)` only — no hardcoded colors, spacing or font sizes.
 - No `any`. External JSON is parsed as `unknown` and narrowed with type guards.
