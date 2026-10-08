@@ -80,12 +80,9 @@ Faixas de score usadas pelos clientes para derivar `riskLevel`: `0–33` low, `3
 Erros: `404` quando a origem ou o destino não forem encontrados, ou quando não houver rota entre
 eles. O corpo deve trazer uma mensagem pronta para exibir ao usuário.
 
-### Divergência atual entre os clientes
+### Clientes alinhados
 
-| Campo                                       | `web/src/types` | `mobile/src/types` |
-| ------------------------------------------- | --------------- | ------------------ |
-| `geometry`                                  | sim             | não                |
-| `originCoordinate` / `destinationCoordinate` | não             | sim                |
-
-O contrato acima segue o `web/`, em que origem e destino são o primeiro e o último ponto de
-`geometry`. Ao implementar o backend, alinhe o `mobile/` a ele.
+`web/src/types` e `mobile/src/types` seguem o contrato acima (origem e destino são o primeiro e o
+último ponto de `geometry`). Os dois montam hoje as rotas pela Mapbox Directions com risco
+simulado, incluindo até 3 alternativas por busca, cada uma com o próprio risco; o endpoint
+`POST /routes` deve devolver a mesma lista de opções.
