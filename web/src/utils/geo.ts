@@ -163,3 +163,35 @@ export function splitLineByDistance(line: Coordinate[], parts: number): Coordina
   pieces.push(current);
   return pieces;
 }
+
+/** Até `max` vértices espaçados ao longo da linha (para comparações baratas entre rotas). */
+function sampleLine(line: Coordinate[], max: number): Coordinate[] {
+  if (line.length <= max) return line;
+  const step = (line.length - 1) / (max - 1);
+  return Array.from({ length: max }, (_, index) => line[Math.round(index * step)]).filter(
+    (point): point is Coordinate => point !== undefined,
+  );
+}
+
+const LABEL_SAMPLES = 120;
+
+/**
+ * Ponto de `line` mais afastado das `others` — onde a rota "se separa" das demais. É ali que
+ * a etiqueta de uma rota alternativa fica legível, sem cobrir as etiquetas das outras.
+ */
+export function mostDistinctPoint(line: Coordinate[], others: Coordinate[][]): Coordinate | null {
+  const candidates = sampleLine(line, LABEL_SAMPLES);
+  const otherPoints = others.flatMap((other) => sampleLine(other, LABEL_SAMPLES));
+  if (otherPoints.length === 0) return candidates[Math.floor(candidates.length / 2)] ?? null;
+
+  let best: Coordinate | null = null;
+  let bestDistance = -1;
+  for (const point of candidates) {
+    const nearest = Math.min(...otherPoints.map((other) => distanceBetween(point, other)));
+    if (nearest > bestDistance) {
+      best = point;
+      bestDistance = nearest;
+    }
+  }
+  return best;
+}
