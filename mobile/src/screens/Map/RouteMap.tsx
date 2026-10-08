@@ -8,8 +8,9 @@ import type { Coordinate, RouteSegment } from '@/types';
 
 export interface RouteMapProps {
   segments: RouteSegment[];
-  origin: Coordinate;
-  destination: Coordinate;
+  /** Ausentes só se a rota vier sem traçado; aí o marcador não é desenhado. */
+  origin: Coordinate | undefined;
+  destination: Coordinate | undefined;
 }
 
 const BOUNDS_PADDING = 48;
@@ -76,12 +77,16 @@ export function RouteMap({ segments, origin, destination }: RouteMapProps) {
           />
         </Mapbox.ShapeSource>
 
-        <Mapbox.PointAnnotation id="origin" coordinate={origin}>
-          <View style={[styles.marker, { backgroundColor: colors.primary }]} />
-        </Mapbox.PointAnnotation>
-        <Mapbox.PointAnnotation id="destination" coordinate={destination}>
-          <View style={[styles.marker, { backgroundColor: colors.accent }]} />
-        </Mapbox.PointAnnotation>
+        {origin ? (
+          <Mapbox.PointAnnotation id="origin" coordinate={origin}>
+            <View style={[styles.marker, { backgroundColor: colors.primary }]} />
+          </Mapbox.PointAnnotation>
+        ) : null}
+        {destination ? (
+          <Mapbox.PointAnnotation id="destination" coordinate={destination}>
+            <View style={[styles.marker, { backgroundColor: colors.accent }]} />
+          </Mapbox.PointAnnotation>
+        ) : null}
       </Mapbox.MapView>
     </View>
   );
