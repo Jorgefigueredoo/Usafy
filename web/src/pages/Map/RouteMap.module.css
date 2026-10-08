@@ -3,3 +3,12 @@
   inset: 0;
   background: var(--color-background);
 }
+
+/*
+ * O painel inferior sobe `--radius-lg` sobre o mapa e cobriria parte do logo do Mapbox, da
+ * atribuição e do zoom. Sobe só os contêineres; o logo não é estilizado (exigência do Mapbox).
+ */
+.map :global(.mapboxgl-ctrl-bottom-left),
+.map :global(.mapboxgl-ctrl-bottom-right) {
+  bottom: var(--radius-lg);
+}
