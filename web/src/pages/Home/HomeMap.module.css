@@ -4,6 +4,19 @@
   background: var(--color-surface-sunken);
 }
 
+/*
+ * Controles do Mapbox (logo e atribuição) sempre inteiros na tela: o logo no topo desce
+ * abaixo da barra de status do iPhone, e a atribuição embaixo sobe acima da borda do painel.
+ * Só a posição do contêiner muda; o logo em si não é estilizado (exigência do Mapbox).
+ */
+.map :global(.mapboxgl-ctrl-top-left) {
+  top: env(safe-area-inset-top);
+}
+
+.map :global(.mapboxgl-ctrl-bottom-left) {
+  bottom: var(--radius-lg);
+}
+
 /* Fica acima da borda arredondada do painel, que sobe sobre o mapa. */
 .locate {
   position: absolute;
