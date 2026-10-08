@@ -47,6 +47,8 @@
   min-width: 0;
 }
 
+/* Sempre no canto direito, mesmo quando o header não tem título (ex.: sobre o mapa). */
 .trailing {
   flex-shrink: 0;
+  margin-left: auto;
 }
