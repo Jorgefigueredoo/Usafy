@@ -1,7 +1,7 @@
 export { Button, type ButtonProps, type ButtonVariant } from './Button';
 export { Card, type CardProps } from './Card';
 export { Icon, type IconName, type IconProps } from './Icon';
-export { Input, type InputProps } from './Input';
+export { Input, type InputProps, type InputVariant } from './Input';
 export { Logo, type LogoProps, type LogoSize } from './Logo';
 export { Metric, type MetricProps } from './Metric';
 export { RiskBadge, type RiskBadgeProps } from './RiskBadge';
