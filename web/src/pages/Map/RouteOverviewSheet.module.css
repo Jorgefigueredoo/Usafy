@@ -1,0 +1,63 @@
+/*
+ * Alça do painel: área de toque larga no topo, com a barrinha visível no meio. Ocupa o
+ * espaço do padding de cima do painel, então o conteúdo não desce.
+ */
+.handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--space-lg);
+  margin: calc(-1 * var(--space-md)) 0 calc(-1 * var(--space-sm));
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+
+.grabber {
+  width: var(--space-xxl);
+  height: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  transition: background-color 0.15s ease;
+}
+
+.handle:hover .grabber,
+.handle[aria-expanded='true'] .grabber {
+  background: var(--color-text-secondary);
+}
+
+/*
+ * Conteúdo extra: anima a altura com grid 0fr → 1fr. Fechado, fica invisível também para
+ * leitores de tela e para o Tab (visibility), não só sem altura.
+ */
+.more {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: calc(-1 * var(--space-md));
+  transition:
+    grid-template-rows 250ms ease,
+    margin-top 250ms ease;
+}
+
+.more[data-expanded='true'] {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+}
+
+.moreInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 250ms;
+}
+
+.more[data-expanded='true'] .moreInner {
+  visibility: visible;
+  transition-delay: 0s;
+}
