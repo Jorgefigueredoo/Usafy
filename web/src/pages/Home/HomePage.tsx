@@ -52,7 +52,7 @@ function toEndpoint(place: PlaceValue): RouteEndpoint {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { setRoute } = useCurrentRoute();
+  const { setRouteOptions } = useCurrentRoute();
   const { loading, error, search, clearError } = useRouteSearch();
   const location = useUserLocation();
 
@@ -122,9 +122,9 @@ export function HomePage() {
         ? { label: CURRENT_LOCATION_LABEL, coordinate: location.coordinate }
         : toEndpoint(origin);
 
-    const route = await search(originEndpoint, toEndpoint(destination));
-    if (route) {
-      setRoute(route);
+    const routes = await search(originEndpoint, toEndpoint(destination));
+    if (routes) {
+      setRouteOptions(routes);
       navigate(paths.map);
     }
   };
