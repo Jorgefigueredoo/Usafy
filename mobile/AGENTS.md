@@ -27,6 +27,8 @@ Run lint, typecheck and tests before declaring any task done.
 Pure logic (types, risk mock, route choice, geometry) is duplicated from `web/` on purpose — the
 projects never import each other. When changing one side, port the change and its test to the other.
 
+- Pending work: navigation (GPS follow, voice, arrival, share, offline) is planned in
+  [docs/fase-3-navegacao.md](docs/fase-3-navegacao.md).
 - Storage: `src/app/_layout.tsx` installs `expo-sqlite/localStorage`, so code that uses
   `localStorage` (saved places, map theme, onboarding seen) works the same as in `web/`.
 - Jest: `jest.modulePaths` points at `node_modules/expo/node_modules` because npm nests
