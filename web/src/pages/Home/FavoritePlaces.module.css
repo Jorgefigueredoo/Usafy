@@ -1,0 +1,130 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.heading {
+  text-transform: uppercase;
+  letter-spacing: calc(4 * var(--text-caption-tracking));
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+/* Cartão = botão principal (usar o lugar) + botão pequeno de editar no canto. */
+.card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  transition: border-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+}
+
+.use {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  min-height: var(--layout-touch-target);
+  padding: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.use:disabled,
+.edit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xl);
+  height: var(--space-xl);
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--text-body-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-body-line);
+}
+
+.address {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-xl);
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-left: var(--layout-border-width) solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.edit:hover:not(:disabled) {
+  color: var(--color-text-primary);
+}
+
+/* Cadastro de Casa/Trabalho: mesmo visual do cartão de busca. */
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-xs);
+  border: var(--layout-border-width) solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.editorField {
+  min-width: 0;
+}
+
+.editorActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-xs) var(--space-xs);
+}
+
+.spacer {
+  flex: 1;
+}
