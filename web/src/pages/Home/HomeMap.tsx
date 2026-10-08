@@ -1,4 +1,4 @@
-import type { Map as MapboxMap, Marker } from 'mapbox-gl';
+import mapboxgl, { type Map as MapboxMap, type Marker } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -48,7 +48,13 @@ export default function HomeMap({ userLocation, locating, onRequestLocation }: H
       center: initialCenter ?? RECIFE_CENTER,
       zoom: initialCenter ? STREET_ZOOM : CITY_ZOOM,
       pitch: HOME_PITCH,
+      // Embaixo o logo do Mapbox ficaria colado no painel de busca. Os termos do Mapbox
+      // permitem mudar o logo de canto, mas não escondê-lo nem alterar a aparência dele.
+      logoPosition: 'top-left',
+      attributionControl: false,
     });
+    // Atribuição no canto inferior esquerdo: no direito ficaria atrás do botão de localização.
+    map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
     mapRef.current = map;
     hasCenteredRef.current = initialCenter !== null;
     onMapFatalError(map, () => setFailed(true));
