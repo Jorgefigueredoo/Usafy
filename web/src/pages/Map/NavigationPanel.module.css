@@ -6,6 +6,7 @@
 }
 
 .eta {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -18,4 +19,36 @@
 
 .stop {
   flex-shrink: 0;
+}
+
+/* Compartilhar: ação secundária, só ícone, ao lado de "Encerrar". */
+.share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-touch-target);
+  height: var(--layout-touch-target);
+  flex-shrink: 0;
+  padding: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.share:hover {
+  background: var(--color-surface-elevated);
+}
+
+.feedback {
+  margin: 0;
+  color: var(--risk-low-tone);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  text-align: center;
+}
+
+.feedbackError {
+  color: var(--color-danger);
 }
