@@ -22,7 +22,19 @@
     },
     "backgroundColor": "#0F1E2E",
     "plugins": [
-      "@rnmapbox/maps"
-    ]
+      "@rnmapbox/maps",
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Usafy usa sua localização para traçar a rota a partir de onde você está e para guiar a navegação."
+        }
+      ]
+    ],
+    "scheme": "usafy",
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
