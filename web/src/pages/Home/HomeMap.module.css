@@ -30,3 +30,9 @@
 .locate[data-active='true'] {
   color: var(--color-accent);
 }
+
+.themePicker {
+  position: absolute;
+  top: calc(var(--space-md) + env(safe-area-inset-top));
+  right: var(--space-md);
+}
