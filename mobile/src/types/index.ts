@@ -4,14 +4,14 @@ export type RiskLevel = 'low' | 'medium' | 'high';
 /** Dimensões que o motor de risco avalia para pontuar um trecho. */
 export type RiskFactorType = 'crime' | 'lighting' | 'footTraffic';
 
+/** Par [longitude, latitude] — a ordem que o GeoJSON e o Mapbox esperam. */
+export type Coordinate = [longitude: number, latitude: number];
+
 export interface RiskFactor {
   type: RiskFactorType;
   severity: RiskLevel;
   description: string;
 }
-
-/** Par [longitude, latitude] — a ordem que o GeoJSON e o Mapbox esperam. */
-export type Coordinate = [longitude: number, latitude: number];
 
 export interface RouteSegment {
   id: string;
@@ -20,10 +20,20 @@ export interface RouteSegment {
   /** 0 = totalmente seguro, 100 = risco máximo. */
   riskScore: number;
   distanceMeters: number;
-  /** Traçado do trecho no mapa, do início ao fim. */
+  /** Traçado do trecho, do início ao fim. */
   coordinates: Coordinate[];
-  /** O que gerou o risco deste trecho. */
   factors: RiskFactor[];
+}
+
+/** Direção visual da manobra, já normalizada para os ícones do app. */
+export type ManeuverDirection = 'left' | 'right' | 'straight' | 'uturn' | 'arrive';
+
+/** Instrução de navegação passo a passo ("Vire à direita na Rua X"). */
+export interface Maneuver {
+  instruction: string;
+  direction: ManeuverDirection;
+  /** Onde a manobra acontece, em metros desde o início da rota. */
+  distanceFromStartMeters: number;
 }
 
 export interface Route {
@@ -34,7 +44,9 @@ export interface Route {
   overallScore: number;
   durationMinutes: number;
   distanceKm: number;
+  /** Traçado completo; o primeiro e o último ponto são origem e destino. */
+  geometry: Coordinate[];
   segments: RouteSegment[];
-  originCoordinate: Coordinate;
-  destinationCoordinate: Coordinate;
+  /** Manobras em ordem, usadas no modo navegação. */
+  maneuvers: Maneuver[];
 }
