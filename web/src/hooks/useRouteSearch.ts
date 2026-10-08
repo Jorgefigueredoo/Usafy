@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getRoute, RouteServiceError, type RouteEndpoint } from '@/services/routeService';
+import { getRouteOptions, RouteServiceError, type RouteEndpoint } from '@/services/routeService';
 import type { Route } from '@/types';
 
 const GENERIC_ERROR = 'Não foi possível calcular a rota agora. Tente novamente em instantes.';
@@ -8,8 +8,8 @@ const GENERIC_ERROR = 'Não foi possível calcular a rota agora. Tente novamente
 export interface RouteSearchState {
   loading: boolean;
   error: string | null;
-  /** Resolve com a rota, ou `null` se falhou ou foi cancelada (o erro fica em `error`). */
-  search: (origin: RouteEndpoint, destination: RouteEndpoint) => Promise<Route | null>;
+  /** Resolve com as opções de rota, ou `null` se falhou ou foi cancelada (o erro fica em `error`). */
+  search: (origin: RouteEndpoint, destination: RouteEndpoint) => Promise<Route[] | null>;
   clearError: () => void;
 }
 
@@ -30,7 +30,7 @@ export function useRouteSearch(): RouteSearchState {
     setError(null);
 
     try {
-      return await getRoute(origin, destination, controller.signal);
+      return await getRouteOptions(origin, destination, controller.signal);
     } catch (caught) {
       if (controller.signal.aborted) return null;
       setError(caught instanceof RouteServiceError ? caught.message : GENERIC_ERROR);
