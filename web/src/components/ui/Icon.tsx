@@ -18,7 +18,12 @@ export type IconName =
   | 'straight'
   | 'uturn'
   | 'chevronLeft'
-  | 'chevronRight';
+  | 'chevronRight'
+  | 'layers'
+  | 'sun'
+  | 'moon'
+  | 'globe'
+  | 'check';
 
 export interface IconProps {
   name: IconName;
@@ -111,6 +116,29 @@ const ICON_SHAPES: Record<IconName, IconShape[]> = {
   ],
   chevronLeft: [{ kind: 'path', d: 'M14.6 5.4 8 12l6.6 6.6' }],
   chevronRight: [{ kind: 'path', d: 'M9.4 5.4 16 12l-6.6 6.6' }],
+  layers: [
+    { kind: 'path', d: 'm12 3.6 8.4 4.4-8.4 4.4L3.6 8 12 3.6Z' },
+    { kind: 'path', d: 'm3.6 12 8.4 4.4 8.4-4.4' },
+    { kind: 'path', d: 'm3.6 16 8.4 4.4 8.4-4.4' },
+  ],
+  sun: [
+    { kind: 'circle', cx: 12, cy: 12, r: 3.8 },
+    { kind: 'path', d: 'M12 2.8v2' },
+    { kind: 'path', d: 'M12 19.2v2' },
+    { kind: 'path', d: 'M2.8 12h2' },
+    { kind: 'path', d: 'M19.2 12h2' },
+    { kind: 'path', d: 'm5.5 5.5 1.4 1.4' },
+    { kind: 'path', d: 'm17.1 17.1 1.4 1.4' },
+    { kind: 'path', d: 'm5.5 18.5 1.4-1.4' },
+    { kind: 'path', d: 'm17.1 6.9 1.4-1.4' },
+  ],
+  moon: [{ kind: 'path', d: 'M19.6 14.6A8 8 0 0 1 9.4 4.4a8 8 0 1 0 10.2 10.2Z' }],
+  globe: [
+    { kind: 'circle', cx: 12, cy: 12, r: 8.4 },
+    { kind: 'path', d: 'M3.6 12h16.8' },
+    { kind: 'path', d: 'M12 3.6c2.3 2.3 3.4 5.1 3.4 8.4s-1.1 6.1-3.4 8.4c-2.3-2.3-3.4-5.1-3.4-8.4S9.7 5.9 12 3.6Z' },
+  ],
+  check: [{ kind: 'path', d: 'm5 12.5 4.4 4.4L19 7.3' }],
 };
 
 export function Icon({ name, size = layout.iconMd, strokeWidth = 1.8, className }: IconProps) {
