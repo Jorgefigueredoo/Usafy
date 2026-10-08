@@ -7,11 +7,15 @@ import { spacing } from '@/theme';
 import type { Route } from '@/types';
 
 import { RiskLegend } from './RiskLegend';
+import { RouteOptions } from './RouteOptions';
 import styles from './RouteOverviewSheet.module.css';
 import { RouteSummaryCard } from './RouteSummaryCard';
 
 export interface RouteOverviewSheetProps {
   route: Route;
+  /** Opções de caminho da busca; com 2 ou mais, aparece a comparação entre elas. */
+  alternatives: Route[];
+  onSelectRoute: (routeId: string) => void;
   selectedSegmentId: string | null;
   onSelectSegment: (segmentId: string | null) => void;
   onStartNavigation: () => void;
@@ -27,6 +31,8 @@ const SWIPE_THRESHOLD = spacing.lg;
  */
 export function RouteOverviewSheet({
   route,
+  alternatives,
+  onSelectRoute,
   selectedSegmentId,
   onSelectSegment,
   onStartNavigation,
@@ -78,6 +84,9 @@ export function RouteOverviewSheet({
         <span className={styles.grabber} />
       </button>
 
+      {alternatives.length > 1 && (
+        <RouteOptions options={alternatives} selectedId={route.id} onSelect={onSelectRoute} />
+      )}
       <RouteSummaryCard
         route={route}
         selectedSegmentId={selectedSegmentId}
