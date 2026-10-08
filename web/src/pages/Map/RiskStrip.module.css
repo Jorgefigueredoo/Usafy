@@ -1,0 +1,79 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.strip {
+  display: flex;
+  gap: var(--layout-focus-ring-width);
+}
+
+/*
+ * Cada pedaço é um botão de altura confortável ao toque; a barra colorida visível é o
+ * ::before, mais fina. Trechos muito curtos ainda ganham uma largura mínima tocável.
+ */
+.piece {
+  position: relative;
+  flex-basis: 0;
+  min-width: var(--space-md);
+  height: var(--space-xl);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.piece::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-md) - var(--space-xs)) 0;
+  border-radius: var(--radius-full);
+  background: var(--piece-color);
+  transition:
+    inset 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.low {
+  --piece-color: var(--risk-low-fill);
+}
+
+.medium {
+  --piece-color: var(--risk-medium-fill);
+}
+
+.high {
+  --piece-color: var(--risk-high-fill);
+}
+
+/* Com um trecho escolhido, os outros apagam e ele engrossa com contorno branco. */
+.strip:has([aria-pressed='true']) .piece::before {
+  opacity: 0.35;
+}
+
+.strip .piece[aria-pressed='true']::before {
+  inset: var(--space-sm) 0;
+  opacity: 1;
+  box-shadow: 0 0 0 var(--layout-focus-ring-width) var(--color-text-primary);
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: calc(var(--layout-touch-target) - var(--space-md));
+}
+
+.selectedText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.selectedName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
