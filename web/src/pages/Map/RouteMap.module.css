@@ -12,3 +12,53 @@
 .map :global(.mapboxgl-ctrl-bottom-right) {
   bottom: var(--radius-lg);
 }
+
+/*
+ * Etiqueta de cada opção de caminho ("21 min" + bolinha do risco), estilo Google Maps.
+ * Raiz sem `transform`: o Mapbox posiciona o marcador escrevendo o transform nela.
+ */
+.routeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--space-xl);
+  padding: 0 var(--space-sm);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-caption-line);
+  white-space: nowrap;
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+  cursor: pointer;
+}
+
+/* A escolhida fica por cima das outras etiquetas e em destaque. */
+.routeChipSelected {
+  z-index: 1;
+  border-color: var(--color-text-primary);
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+}
+
+.routeChipDot {
+  width: var(--space-sm);
+  height: var(--space-sm);
+  border-radius: var(--radius-full);
+}
+
+.low {
+  background: var(--risk-low-tone);
+}
+
+.medium {
+  background: var(--risk-medium-tone);
+}
+
+.high {
+  background: var(--risk-high-tone);
+}
