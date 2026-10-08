@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router';
 import { Header, Screen, Spacer } from '@/components/layout';
 import { Button, Text } from '@/components/ui';
 import { useCurrentRoute } from '@/hooks';
-import { paths } from '@/paths';
+import { paths, type MapNavigationState } from '@/paths';
 
 import { OverallScoreCard } from './OverallScoreCard';
 import styles from './RouteDetailsPage.module.css';
@@ -41,7 +41,15 @@ export function RouteDetailsPage() {
 
       <ol className={styles.segments}>
         {route.segments.map((segment, index) => (
-          <SegmentCard key={segment.id} segment={segment} position={index + 1} />
+          <SegmentCard
+            key={segment.id}
+            segment={segment}
+            position={index + 1}
+            onShowOnMap={() => {
+              const state: MapNavigationState = { segmentId: segment.id };
+              navigate(paths.map, { state });
+            }}
+          />
         ))}
       </ol>
 
