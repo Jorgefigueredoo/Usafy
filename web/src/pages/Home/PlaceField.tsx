@@ -12,7 +12,9 @@ import { SuggestionList } from './SuggestionList';
 
 export interface PlaceFieldProps {
   label: string;
-  icon: IconName;
+  icon?: IconName;
+  /** Marcador no início do campo, no lugar de `icon`. */
+  leading?: ReactNode;
   placeholder: string;
   value: PlaceValue;
   onChange: (value: PlaceValue) => void;
@@ -31,6 +33,7 @@ export interface PlaceFieldProps {
 export function PlaceField({
   label,
   icon,
+  leading,
   placeholder,
   value,
   onChange,
@@ -104,7 +107,9 @@ export function PlaceField({
     <div ref={fieldRef} className={styles.field}>
       <Input
         label={label}
+        variant="inline"
         icon={icon}
+        leading={leading}
         placeholder={placeholder}
         value={displayText ?? value.text}
         onChangeText={handleType}
