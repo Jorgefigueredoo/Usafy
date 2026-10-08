@@ -1,4 +1,5 @@
-import { Text } from '@/components/ui';
+import { Icon, Text } from '@/components/ui';
+import { layout } from '@/theme';
 
 import styles from './NeighborhoodChips.module.css';
 
@@ -8,11 +9,12 @@ export interface NeighborhoodChipsProps {
   disabled?: boolean;
 }
 
+/** Atalhos de bairro numa fileira que rola para o lado (não empurra o botão para baixo). */
 export function NeighborhoodChips({ neighborhoods, onSelect, disabled = false }: NeighborhoodChipsProps) {
   return (
-    <div className={styles.wrapper}>
-      <Text variant="caption" tone="secondary">
-        Bairros do Recife
+    <section className={styles.wrapper} aria-label="Bairros populares">
+      <Text variant="caption" tone="secondary" className={styles.heading}>
+        Bairros populares
       </Text>
       <ul className={styles.list}>
         {neighborhoods.map((name) => (
@@ -23,11 +25,12 @@ export function NeighborhoodChips({ neighborhoods, onSelect, disabled = false }:
               onClick={() => onSelect(name)}
               disabled={disabled}
             >
+              <Icon name="pin" size={layout.iconSm} className={styles.icon} />
               {name}
             </button>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
