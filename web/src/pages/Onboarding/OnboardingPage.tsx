@@ -1,11 +1,14 @@
 import { useNavigate } from 'react-router';
 
 import { Screen, Spacer } from '@/components/layout';
-import { Button, Logo, Text } from '@/components/ui';
+import { Button, Icon, Logo, Text } from '@/components/ui';
 import { paths } from '@/paths';
+import { layout } from '@/theme';
+import { cx } from '@/utils/cx';
 
 import { FeatureRow, type FeatureRowProps } from './FeatureRow';
 import styles from './OnboardingPage.module.css';
+import { RoutePreview } from './RoutePreview';
 
 /** Os três sinais que o Usafy cruza para pontuar um trecho. */
 const FEATURES: FeatureRowProps[] = [
@@ -31,36 +34,66 @@ export function OnboardingPage() {
 
   return (
     <Screen
-      footer={<Button label="Começar" fullWidth onClick={() => navigate(paths.home)} />}
+      footer={
+        <div className={styles.footer}>
+          <Button
+            label="Começar"
+            trailingIcon="chevronRight"
+            fullWidth
+            onClick={() => navigate(paths.home)}
+          />
+          <Text variant="caption" tone="secondary" align="center">
+            Versão de testes · níveis de risco simulados
+          </Text>
+        </div>
+      }
     >
-      <Spacer flex />
+      <header className={styles.topBar}>
+        <span className={styles.brand}>
+          <Logo size="sm" />
+          <Text variant="subtitle" as="span">
+            Usafy
+          </Text>
+        </span>
+        <span className={styles.region}>
+          <Icon name="pin" size={layout.iconSm} />
+          Recife
+        </span>
+      </header>
 
-      <div className={styles.brand}>
-        <Logo size="lg" />
+      <Spacer size="lg" />
+
+      <div className={styles.reveal}>
+        <RoutePreview />
+      </div>
+
+      <Spacer size="xl" />
+
+      <div className={cx(styles.reveal, styles.revealLate)}>
         <Text variant="display" as="h1">
-          Usafy
+          Chegue com <span className={styles.highlight}>segurança</span>.
         </Text>
-        <Text variant="subtitle" tone="accent">
-          Chegue com segurança
+        <Spacer size="sm" />
+        <Text tone="secondary">
+          Rotas pelo Recife que desviam dos trechos de risco, não só a mais rápida.
         </Text>
       </div>
 
       <Spacer size="xl" />
 
-      <Text tone="secondary" align="center">
-        Rotas urbanas que priorizam sua segurança, não a pressa. Cada trecho é avaliado por três
-        fontes de dados:
-      </Text>
+      <section className={cx(styles.reveal, styles.revealLast)}>
+        <Text variant="caption" tone="secondary" as="h2" className={styles.eyebrow}>
+          Como avaliamos cada trecho
+        </Text>
+        <Spacer size="sm" />
+        <ul className={styles.features}>
+          {FEATURES.map((feature) => (
+            <FeatureRow key={feature.title} {...feature} />
+          ))}
+        </ul>
+      </section>
 
       <Spacer size="lg" />
-
-      <ul className={styles.features}>
-        {FEATURES.map((feature) => (
-          <FeatureRow key={feature.title} {...feature} />
-        ))}
-      </ul>
-
-      <Spacer flex />
     </Screen>
   );
 }
