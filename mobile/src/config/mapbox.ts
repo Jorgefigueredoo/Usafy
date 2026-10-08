@@ -19,3 +19,7 @@ export function isInsideRecifeMetro([longitude, latitude]: Coordinate): boolean 
   const [west, south, east, north] = RECIFE_METRO_BBOX;
   return longitude >= west && longitude <= east && latitude >= south && latitude <= north;
 }
+
+/** Estilos base. As cores e a iluminação do Standard são ajustadas em components/map/mapTheme. */
+export const STANDARD_STYLE = 'mapbox://styles/mapbox/standard';
+export const SATELLITE_STYLE = 'mapbox://styles/mapbox/standard-satellite';
