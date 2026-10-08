@@ -1,6 +1,6 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { initMapbox } from '@/config/mapbox';
+import { initMapbox } from '@/config/initMapbox';
 import { RootNavigator } from '@/navigation';
 
 initMapbox();
