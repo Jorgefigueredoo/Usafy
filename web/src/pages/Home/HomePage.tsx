@@ -3,17 +3,21 @@ import { useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
-import { useCurrentRoute, useRouteSearch, useUserLocation } from '@/hooks';
+import { useCurrentRoute, useRouteSearch, useSavedPlaces, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
 import type { RouteEndpoint } from '@/services/routeService';
+import { addRecent, type SavedPlace } from '@/services/savedPlaces';
 import { layout } from '@/theme';
 import { cx } from '@/utils/cx';
 
 import { ErrorMessage } from './ErrorMessage';
+import { FavoritePlaces } from './FavoritePlaces';
 import styles from './HomePage.module.css';
 import { NeighborhoodChips } from './NeighborhoodChips';
 import { PlaceField } from './PlaceField';
 import { EMPTY_PLACE, type PlaceValue } from './placeValue';
+import { RecentPlaces } from './RecentPlaces';
+import { RouteLoading } from './RouteLoading';
 
 // Mapbox GL fica fora do bundle inicial: o formulário aparece na hora, o mapa chega logo depois.
 const HomeMap = lazy(() => import('./HomeMap'));
@@ -55,6 +59,7 @@ export function HomePage() {
   const { setRouteOptions } = useCurrentRoute();
   const { loading, error, search, clearError } = useRouteSearch();
   const location = useUserLocation();
+  const savedPlaces = useSavedPlaces();
 
   const [originMode, setOriginMode] = useState<OriginMode>('auto');
   const [origin, setOrigin] = useState<PlaceValue>(EMPTY_PLACE);
@@ -107,6 +112,9 @@ export function HomePage() {
     else updateDestination(place);
   };
 
+  // Casa, Trabalho ou recente: sempre vira o destino (a origem costuma ser a localização atual).
+  const pickSavedPlace = (place: SavedPlace) => updateDestination({ text: place.text, coordinate: place.coordinate });
+
   const swap = () => {
     setOrigin(destination);
     setDestination(origin);
@@ -124,6 +132,7 @@ export function HomePage() {
 
     const routes = await search(originEndpoint, toEndpoint(destination));
     if (routes) {
+      addRecent({ text: destination.text.trim(), coordinate: destination.coordinate });
       setRouteOptions(routes);
       navigate(paths.map);
     }
@@ -139,6 +148,7 @@ export function HomePage() {
             onRequestLocation={location.request}
           />
         </Suspense>
+        {loading && <RouteLoading />}
       </div>
 
       <main className={styles.panel}>
@@ -217,13 +227,22 @@ export function HomePage() {
           {/* Logo abaixo dos campos: mais embaixo o botão fixo do rodapé cobriria a mensagem. */}
           {locationError && <ErrorMessage message={locationError} />}
           {error && <ErrorMessage message={error} />}
-
-          <NeighborhoodChips
-            neighborhoods={RECIFE_NEIGHBORHOODS}
-            onSelect={fillNextEmpty}
-            disabled={loading}
-          />
         </form>
+
+        {/* Fora do <form>: Enter no cadastro de Casa/Trabalho não pode disparar a busca da rota. */}
+        <FavoritePlaces
+          favorites={savedPlaces.favorites}
+          onUse={pickSavedPlace}
+          near={location.coordinate}
+          onOpenChange={setSuggestionsOpen}
+          disabled={loading}
+        />
+        <RecentPlaces recents={savedPlaces.recents} onUse={pickSavedPlace} disabled={loading} />
+        <NeighborhoodChips
+          neighborhoods={RECIFE_NEIGHBORHOODS}
+          onSelect={fillNextEmpty}
+          disabled={loading}
+        />
       </main>
 
       {/* Enquanto o usuário escolhe um lugar, o botão fixo sairia por cima das sugestões. */}
