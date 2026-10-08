@@ -42,40 +42,131 @@
   gap: var(--space-md);
 }
 
+/*
+ * Cartão único com origem e destino, como nos apps de mobilidade: marcadores iguais aos do
+ * mapa ligados por uma linha pontilhada e o botão de inverter numa coluna à direita.
+ */
+.searchCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 var(--space-xs) var(--space-lg) var(--color-shadow);
+  transition: border-color 0.15s ease;
+}
+
+.searchCard:focus-within {
+  border-color: var(--color-primary);
+}
+
 .fields {
   position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-md);
+  min-width: 0;
 }
 
-/* Botão de inverter fica no vão entre os dois campos, alinhado à direita. */
-.swap {
+/*
+ * Linha pontilhada entre os marcadores. Cada linha do cartão tem a mesma altura (alvo de
+ * toque + sm), então o traço vai do centro de um marcador ao centro do outro, com folga.
+ */
+.fields::before {
+  content: '';
   position: absolute;
-  right: var(--space-xxl);
-  top: 50%;
-  transform: translateY(-50%);
+  top: calc((var(--layout-touch-target) + var(--space-sm)) / 2 + var(--space-md) - var(--space-xs));
+  bottom: calc((var(--layout-touch-target) + var(--space-sm)) / 2 + var(--space-md) - var(--space-xs));
+  left: calc(var(--space-md) + var(--layout-icon-md) / 2 - var(--layout-border-width));
+  border-left: var(--layout-focus-ring-width) dotted var(--color-text-secondary);
+  pointer-events: none;
+}
+
+/* Com sugestões abertas a lista fica entre os campos e o traço não faria sentido. */
+.searchCardOpen .fields::before {
+  display: none;
+}
+
+/* Divisória começa depois do marcador, alinhada ao texto. */
+.divider {
+  height: var(--layout-border-width);
+  margin-left: calc(var(--space-md) + var(--layout-icon-md) + var(--space-sm));
+  background: var(--color-border);
+}
+
+/* Origem: ponto azul com borda branca, igual ao marcador de origem do mapa. */
+.originMarker {
+  width: var(--space-md);
+  height: var(--space-md);
+  border: calc(var(--space-xs) - var(--layout-border-width)) solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+/* Usando o GPS: halo pulsando, como o "você está aqui". */
+.originMarkerLive {
+  animation: live 2s ease-out infinite;
+}
+
+/* Destino: gota laranja (quadrado com três cantos arredondados, girado). */
+.destinationMarker {
+  position: relative;
+  width: var(--space-md);
+  height: var(--space-md);
+  border-radius: var(--radius-full) var(--radius-full) var(--radius-full) 0;
+  background: var(--color-accent);
+  transform: translateY(calc(-1 * var(--layout-border-width) * 2)) rotate(-45deg);
+}
+
+.destinationMarker::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-xs) + var(--layout-border-width));
+  border-radius: var(--radius-full);
+  background: var(--color-text-primary);
+}
+
+.swap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-xl);
-  height: var(--space-xl);
+  width: calc(var(--layout-touch-target) - var(--space-sm));
+  height: calc(var(--layout-touch-target) - var(--space-sm));
+  flex-shrink: 0;
+  margin-right: var(--space-xs);
   padding: 0;
   border: var(--layout-border-width) solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-sunken);
   color: var(--color-text-secondary);
   cursor: pointer;
-  z-index: 1;
+  transition:
+    color 0.15s ease,
+    transform 0.2s ease;
 }
 
 .swap:hover:not(:disabled) {
   color: var(--color-text-primary);
 }
 
+.swap:active:not(:disabled) {
+  transform: rotate(180deg);
+}
+
 .swap:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
+}
+
+@keyframes live {
+  from {
+    box-shadow: 0 0 0 0 var(--color-location-pulse);
+  }
+  to {
+    box-shadow: 0 0 0 var(--space-sm) transparent;
+  }
 }
 
 /* Ação dentro do campo de origem (usar localização / voltar a digitar). */
