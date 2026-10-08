@@ -16,8 +16,8 @@ export function MapScreen({ navigation, route }: RootStackScreenProps<'Map'>) {
       <Spacer size="md" />
       <RouteMap
         segments={plannedRoute.segments}
-        origin={plannedRoute.originCoordinate}
-        destination={plannedRoute.destinationCoordinate}
+        origin={plannedRoute.geometry[0]}
+        destination={plannedRoute.geometry[plannedRoute.geometry.length - 1]}
       />
 
       <Spacer size="md" />
