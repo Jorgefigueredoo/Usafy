@@ -1,7 +1,14 @@
 import type { Map as MapboxMap, Marker } from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 
-import { createMap, createMarker, MapFallback, onMapFatalError } from '@/components/map';
+import {
+  createMap,
+  createMarker,
+  MapFallback,
+  MapThemePicker,
+  onMapFatalError,
+  useMapAppearance,
+} from '@/components/map';
 import { Icon, Spinner } from '@/components/ui';
 import { MAPBOX_TOKEN, RECIFE_CENTER } from '@/services/mapboxConfig';
 import type { Coordinate } from '@/types';
@@ -17,6 +24,8 @@ export interface HomeMapProps {
 
 const CITY_ZOOM = 11.5;
 const STREET_ZOOM = 15;
+/** Leve inclinação para os prédios 3D aparecerem já na tela inicial. */
+const HOME_PITCH = 45;
 
 /** Mapa de contexto da Home: mostra onde o usuário está antes de escolher o destino. */
 export default function HomeMap({ userLocation, locating, onRequestLocation }: HomeMapProps) {
@@ -27,6 +36,9 @@ export default function HomeMap({ userLocation, locating, onRequestLocation }: H
   const hasCenteredRef = useRef(false);
   const [initialCenter] = useState(userLocation);
   const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useMapAppearance(mapRef, ready);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -35,13 +47,16 @@ export default function HomeMap({ userLocation, locating, onRequestLocation }: H
     const map = createMap(container, {
       center: initialCenter ?? RECIFE_CENTER,
       zoom: initialCenter ? STREET_ZOOM : CITY_ZOOM,
+      pitch: HOME_PITCH,
     });
     mapRef.current = map;
     hasCenteredRef.current = initialCenter !== null;
     onMapFatalError(map, () => setFailed(true));
+    map.once('style.load', () => setReady(true));
 
     return () => {
       map.remove();
+      setReady(false);
       mapRef.current = null;
       userMarkerRef.current = null;
     };
@@ -75,6 +90,7 @@ export default function HomeMap({ userLocation, locating, onRequestLocation }: H
   return (
     <>
       <div ref={containerRef} className={styles.map} aria-label="Mapa da sua região" />
+      <MapThemePicker className={styles.themePicker} />
       <button
         type="button"
         className={styles.locate}
