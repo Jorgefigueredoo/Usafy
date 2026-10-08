@@ -1,1 +1,1 @@
-export { useRouteSearch, type UseRouteSearchResult } from './useRouteSearch';
+export { useRouteSearch, type RouteSearchState } from './useRouteSearch';
