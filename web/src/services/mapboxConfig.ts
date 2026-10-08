@@ -2,7 +2,9 @@ import type { Coordinate } from '@/types';
 
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN?.trim() ?? '';
 
-export const MAP_STYLE = 'mapbox://styles/mapbox/dark-v11';
+/** Estilos base. As cores e a iluminação do Standard são ajustadas em components/map/mapTheme. */
+export const STANDARD_STYLE = 'mapbox://styles/mapbox/standard';
+export const SATELLITE_STYLE = 'mapbox://styles/mapbox/standard-satellite';
 
 /** Marco Zero do Recife: viés de proximidade da busca e centro padrão do mapa. */
 export const RECIFE_CENTER: Coordinate = [-34.877, -8.0476];
