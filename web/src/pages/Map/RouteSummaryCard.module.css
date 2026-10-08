@@ -12,9 +12,35 @@
   min-width: 0;
 }
 
+/* Nomes longos (endereços completos) ficam em até duas linhas. */
+.title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
 .metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md) var(--space-xl);
-  margin-top: var(--space-md);
+  gap: var(--space-xs) var(--space-md);
+}
+
+.metric {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-primary);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-body-line);
+}
+
+.metric svg {
+  color: var(--color-text-secondary);
+}
+
+.strip {
+  margin-top: var(--space-sm);
 }
