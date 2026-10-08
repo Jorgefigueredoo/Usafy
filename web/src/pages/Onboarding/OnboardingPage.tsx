@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router';
+import { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router';
 
 import { Screen, Spacer } from '@/components/layout';
 import { Button, Icon, Logo, Text } from '@/components/ui';
@@ -7,6 +8,7 @@ import { layout } from '@/theme';
 import { cx } from '@/utils/cx';
 
 import { FeatureRow, type FeatureRowProps } from './FeatureRow';
+import { hasSeenOnboarding, markOnboardingSeen } from './onboardingSeen';
 import styles from './OnboardingPage.module.css';
 import { RoutePreview } from './RoutePreview';
 
@@ -31,6 +33,15 @@ const FEATURES: FeatureRowProps[] = [
 
 export function OnboardingPage() {
   const navigate = useNavigate();
+  // Lido uma vez na montagem: quem já viu as boas-vindas abre o app direto na busca.
+  const [alreadySeen] = useState(hasSeenOnboarding);
+
+  if (alreadySeen) return <Navigate to={paths.home} replace />;
+
+  const start = () => {
+    markOnboardingSeen();
+    navigate(paths.home);
+  };
 
   return (
     <Screen
@@ -40,7 +51,7 @@ export function OnboardingPage() {
             label="Começar"
             trailingIcon="chevronRight"
             fullWidth
-            onClick={() => navigate(paths.home)}
+            onClick={start}
           />
           <Text variant="caption" tone="secondary" align="center">
             Versão de testes · níveis de risco simulados
