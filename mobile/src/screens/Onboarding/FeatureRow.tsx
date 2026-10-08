@@ -7,20 +7,23 @@ export interface FeatureRowProps {
   icon: IconName;
   title: string;
   description: string;
+  /** Linha fina acima, separando dos critérios anteriores no mesmo cartão. */
+  divided?: boolean;
 }
 
-const ICON_SIZE = 22;
-const BADGE_SIZE = 44;
+const BADGE_SIZE = spacing.xl + spacing.sm;
 
-export function FeatureRow({ icon, title, description }: FeatureRowProps) {
+export function FeatureRow({ icon, title, description, divided = false }: FeatureRowProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, divided && styles.divided]}>
       <View style={styles.badge}>
-        <Icon name={icon} size={ICON_SIZE} color={colors.accent} />
+        <Icon name={icon} color={colors.accent} />
       </View>
       <View style={styles.texts}>
-        <Text variant="subtitle">{title}</Text>
-        <Text variant="body" color={colors.textSecondary}>
+        <Text variant="body" style={styles.title}>
+          {title}
+        </Text>
+        <Text variant="caption" color={colors.textSecondary}>
           {description}
         </Text>
       </View>
@@ -33,19 +36,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  divided: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   badge: {
     width: BADGE_SIZE,
     height: BADGE_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
     borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   texts: {
     flex: 1,
-    gap: spacing.xs / 2,
+  },
+  title: {
+    fontWeight: '600',
   },
 });
