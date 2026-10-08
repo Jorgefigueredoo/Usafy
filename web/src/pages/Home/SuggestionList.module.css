@@ -1,10 +1,9 @@
+/* Fica dentro do cartão de busca: sem caixa própria, só uma divisória no topo. */
 .list {
   margin: 0;
   padding: var(--space-xs) 0;
   list-style: none;
-  border: var(--layout-border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-sunken);
+  border-top: var(--layout-border-width) solid var(--color-border);
   overflow: hidden;
 }
 
@@ -14,6 +13,7 @@
   gap: var(--space-md);
   min-height: var(--layout-touch-target);
   padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
@@ -23,6 +23,10 @@
 }
 
 .icon {
+  box-sizing: content-box;
+  padding: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
   color: var(--color-text-secondary);
   flex-shrink: 0;
 }
