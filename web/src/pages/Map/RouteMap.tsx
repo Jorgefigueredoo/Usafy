@@ -13,6 +13,10 @@ import {
 import { MAPBOX_TOKEN } from '@/services/mapboxConfig';
 import { colors, riskFillColors, spacing } from '@/theme';
 import type { Coordinate, RiskLevel, Route } from '@/types';
+import { cx } from '@/utils/cx';
+import { formatDuration } from '@/utils/format';
+import { mostDistinctPoint } from '@/utils/geo';
+import { RISK_SUMMARY_LABELS } from '@/utils/risk';
 
 import styles from './RouteMap.module.css';
 
@@ -34,9 +38,17 @@ export interface RouteMapProps {
   onUserGesture?: () => void;
   /** Trecho tocado na faixa de risco: fica em destaque e a câmera enquadra só ele. */
   highlightedSegmentId?: string | null;
+  /** Opções de caminho da busca (incluindo `route`). Vazia: só a rota escolhida aparece. */
+  alternatives?: Route[];
+  /** Usuário tocou numa rota alternativa (na linha ou na etiqueta). */
+  onSelectRoute?: (routeId: string) => void;
 }
 
 const ROUTE_SOURCE = 'route-segments';
+const ALTERNATIVES_SOURCE = 'route-alternatives';
+/** Faixa invisível e larga sobre as alternativas: linha fina é difícil de acertar com o dedo. */
+const ALTERNATIVE_HIT_WIDTH = spacing.lg;
+const ALTERNATIVE_OPACITY = 0.85;
 const TRAVELED_SOURCE = 'route-traveled';
 const LINE_WIDTH = 6;
 const CASING_WIDTH = LINE_WIDTH + spacing.xs;
@@ -64,6 +76,8 @@ const FIT_PADDING = {
   right: spacing.xl,
 };
 const NO_PADDING = { top: 0, bottom: 0, left: 0, right: 0 };
+/** Referência estável: um `[]` novo a cada render dispararia os efeitos à toa. */
+const NO_ALTERNATIVES: Route[] = [];
 
 /** Câmera de navegação: perto, inclinada e com o usuário no terço de baixo da tela. */
 const FOLLOW_ZOOM = 17;
@@ -93,6 +107,23 @@ function segmentsAsGeoJson(
   };
 }
 
+/** Linhas das outras opções de caminho (a escolhida é desenhada por cima, colorida). */
+function alternativesAsGeoJson(
+  alternatives: Route[],
+  selectedId: string,
+): FeatureCollection<LineString, { id: string }> {
+  return {
+    type: 'FeatureCollection',
+    features: alternatives
+      .filter((option) => option.id !== selectedId)
+      .map((option) => ({
+        type: 'Feature',
+        properties: { id: option.id },
+        geometry: { type: 'LineString', coordinates: option.geometry },
+      })),
+  };
+}
+
 function lineFeature(coordinates: Coordinate[]): Feature<LineString> {
   return { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates } };
 }
@@ -113,15 +144,54 @@ const RISK_COLOR: mapboxgl.ExpressionSpecification = [
  * Desenha a rota. Chamado a cada carga de estilo: trocar o tema para/de Satélite recarrega o
  * estilo e apaga as camadas próprias.
  */
-function addRouteLayers(map: mapboxgl.Map, route: Route, traveled: Coordinate[]): void {
+function addRouteLayers(
+  map: mapboxgl.Map,
+  route: Route,
+  traveled: Coordinate[],
+  alternatives: Route[],
+): void {
   if (map.getSource(ROUTE_SOURCE)) return;
   map.addSource(ROUTE_SOURCE, { type: 'geojson', data: segmentsAsGeoJson(route) });
   map.addSource(TRAVELED_SOURCE, { type: 'geojson', data: lineFeature(traveled) });
+  map.addSource(ALTERNATIVES_SOURCE, {
+    type: 'geojson',
+    data: alternativesAsGeoJson(alternatives, route.id),
+  });
 
   // `middle`: acima das ruas e abaixo dos rótulos e dos prédios 3D do estilo Standard.
   const base = { type: 'line', slot: 'middle', layout: { 'line-cap': 'round', 'line-join': 'round' } } as const;
   // Emissiva: a iluminação de entardecer/noite do Standard não escurece as cores de risco.
   const lit = { 'line-emissive-strength': 1, 'line-occlusion-opacity': OCCLUDED_OPACITY } as const;
+
+  // Alternativas por baixo de tudo, em cinza: visíveis para comparar, sem competir com a escolhida.
+  map.addLayer({
+    ...base,
+    id: 'route-alt-casing',
+    source: ALTERNATIVES_SOURCE,
+    paint: {
+      ...lit,
+      'line-color': colors.surface,
+      'line-width': CASING_WIDTH,
+      'line-opacity': ALTERNATIVE_OPACITY,
+    },
+  });
+  map.addLayer({
+    ...base,
+    id: 'route-alt',
+    source: ALTERNATIVES_SOURCE,
+    paint: {
+      ...lit,
+      'line-color': colors.textSecondary,
+      'line-width': LINE_WIDTH,
+      'line-opacity': ALTERNATIVE_OPACITY,
+    },
+  });
+  map.addLayer({
+    ...base,
+    id: 'route-alt-hit',
+    source: ALTERNATIVES_SOURCE,
+    paint: { 'line-color': colors.textSecondary, 'line-width': ALTERNATIVE_HIT_WIDTH, 'line-opacity': 0 },
+  });
 
   map.addLayer({
     ...base,
@@ -185,12 +255,38 @@ function setLineData(map: mapboxgl.Map, sourceId: string, data: Feature | Featur
   map.getSource<GeoJSONSource>(sourceId)?.setData(data);
 }
 
+/** Etiqueta "21 min" com a cor do risco, presa ao ponto onde cada rota se separa das outras. */
+function createRouteChip(option: Route, selected: boolean, onSelect: () => void): HTMLButtonElement {
+  const duration = formatDuration(option.durationMinutes);
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = cx(styles.routeChip, selected && styles.routeChipSelected);
+  chip.setAttribute(
+    'aria-label',
+    `${selected ? 'Rota escolhida' : 'Escolher rota'}: ${duration}, ${RISK_SUMMARY_LABELS[option.overallRisk]}`,
+  );
+  chip.setAttribute('aria-pressed', String(selected));
+
+  const dot = document.createElement('span');
+  dot.className = cx(styles.routeChipDot, styles[option.overallRisk]);
+  chip.append(dot, duration);
+
+  // Sem isso o toque também chegaria ao mapa por baixo da etiqueta.
+  chip.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onSelect();
+  });
+  return chip;
+}
+
 export function RouteMap({
   route,
   userLocation = null,
   navigation = null,
   onUserGesture,
   highlightedSegmentId = null,
+  alternatives = NO_ALTERNATIVES,
+  onSelectRoute,
 }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -200,6 +296,8 @@ export function RouteMap({
   const navigatorMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const cancelAnimationRef = useRef<(() => void) | null>(null);
   const onUserGestureRef = useRef(onUserGesture);
+  const onSelectRouteRef = useRef(onSelectRoute);
+  const alternativesRef = useRef(alternatives);
   /** Dados mais recentes, para redesenhar a rota quando o estilo do mapa é trocado. */
   const routeRef = useRef(route);
   const traveledRef = useRef<Coordinate[]>([]);
@@ -217,7 +315,8 @@ export function RouteMap({
 
   useEffect(() => {
     onUserGestureRef.current = onUserGesture;
-  }, [onUserGesture]);
+    onSelectRouteRef.current = onSelectRoute;
+  }, [onUserGesture, onSelectRoute]);
 
   useEffect(() => {
     routeRef.current = route;
@@ -242,7 +341,7 @@ export function RouteMap({
     mapRef.current = map;
     onMapFatalError(map, () => setFailed(true));
     map.on('style.load', () => {
-      addRouteLayers(map, routeRef.current, traveledRef.current);
+      addRouteLayers(map, routeRef.current, traveledRef.current, alternativesRef.current);
       applyHighlight(map, highlightedRef.current);
       setReady(true);
     });
@@ -254,6 +353,12 @@ export function RouteMap({
       frameOverviewRef.current?.(0);
     });
     resizeObserver.observe(container);
+
+    // Toque numa rota alternativa a escolhe. O listener por camada sobrevive às trocas de estilo.
+    map.on('click', 'route-alt-hit', (event) => {
+      const id: unknown = event.features?.[0]?.properties?.id;
+      if (typeof id === 'string') onSelectRouteRef.current?.(id);
+    });
 
     // Só gestos do usuário pausam o "seguir" — os movimentos que a própria câmera faz não.
     const notifyGesture = () => onUserGestureRef.current?.();
@@ -296,8 +401,31 @@ export function RouteMap({
     destinationMarkerRef.current?.setLngLat(end);
   }, [route, ready]);
 
-  // Fora da navegação: visão geral com o mapa "deitado" e o norte para cima, enquadrando a
-  // rota inteira ou só o trecho escolhido na faixa de risco.
+  // Opções de caminho: linhas cinza das outras rotas e uma etiqueta de tempo para cada uma.
+  // Somem na navegação, quando só a rota escolhida importa.
+  useEffect(() => {
+    const map = mapRef.current;
+    const visible = navigating ? NO_ALTERNATIVES : alternatives;
+    alternativesRef.current = visible;
+    if (!map || !ready) return;
+
+    setLineData(map, ALTERNATIVES_SOURCE, alternativesAsGeoJson(visible, route.id));
+    if (visible.length < 2) return;
+
+    const chips = visible.flatMap((option) => {
+      const others = visible.filter((other) => other.id !== option.id).map((other) => other.geometry);
+      const point = mostDistinctPoint(option.geometry, others);
+      if (!point) return [];
+      const element = createRouteChip(option, option.id === route.id, () =>
+        onSelectRouteRef.current?.(option.id),
+      );
+      return [new mapboxgl.Marker({ element, anchor: 'bottom' }).setLngLat(point).addTo(map)];
+    });
+    return () => chips.forEach((chip) => chip.remove());
+  }, [alternatives, route.id, ready, navigating]);
+
+  // Fora da navegação: visão geral com o mapa "deitado" e o norte para cima, enquadrando
+  // todas as opções de caminho, a rota inteira ou só o trecho escolhido na faixa de risco.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || navigating) {
@@ -306,7 +434,13 @@ export function RouteMap({
     }
 
     const segment = route.segments.find((item) => item.id === highlightedSegmentId);
-    const target = segment && segment.coordinates.length > 0 ? segment.coordinates : route.geometry;
+    const allOptions = alternatives.flatMap((option) => option.geometry);
+    const target =
+      segment && segment.coordinates.length > 0
+        ? segment.coordinates
+        : allOptions.length > 0
+          ? allOptions
+          : route.geometry;
     const frame = (durationMs: number) => {
       map.setPadding(NO_PADDING);
       map.fitBounds(boundsOf(target), {
@@ -321,7 +455,7 @@ export function RouteMap({
 
     map.resize();
     frame(OVERVIEW_DURATION_MS);
-  }, [route, ready, navigating, highlightedSegmentId]);
+  }, [route, alternatives, ready, navigating, highlightedSegmentId]);
 
   // Entrar/sair da navegação muda o tamanho do painel inferior. Os botões +/− só aparecem
   // na visão geral: durante a navegação, a câmera seguindo desfaria o zoom deles.
