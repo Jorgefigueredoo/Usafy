@@ -15,10 +15,8 @@ export function FeatureRow({ icon, title, description }: FeatureRowProps) {
         <Icon name={icon} />
       </span>
       <span className={styles.texts}>
-        <Text variant="subtitle" as="strong">
-          {title}
-        </Text>
-        <Text tone="secondary" as="span">
+        <strong className={styles.title}>{title}</strong>
+        <Text variant="caption" tone="secondary" as="span">
           {description}
         </Text>
       </span>
