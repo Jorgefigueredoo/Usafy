@@ -1,0 +1,129 @@
+.root {
+  position: relative;
+}
+
+/* Mesmo visual do botão "minha localização": pílula escura legível sobre qualquer tema. */
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-touch-target);
+  height: var(--layout-touch-target);
+  padding: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-scrim);
+  color: var(--color-text-primary);
+  box-shadow: 0 var(--space-xs) var(--space-sm) var(--color-shadow);
+  cursor: pointer;
+}
+
+.trigger:hover,
+.trigger[aria-expanded='true'] {
+  background: var(--color-surface);
+}
+
+.trigger[aria-expanded='true'] {
+  color: var(--color-accent);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--space-md));
+  padding: var(--space-sm);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-scrim);
+  box-shadow: 0 var(--space-sm) var(--space-lg) var(--color-shadow);
+  backdrop-filter: blur(var(--space-md));
+  animation: menu-in 160ms ease-out;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-height: var(--layout-touch-target);
+  padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-xs);
+  border: var(--layout-border-width) solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--color-overlay);
+}
+
+.option[aria-checked='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-surface-sunken);
+}
+
+.optionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--layout-touch-target) - var(--space-sm));
+  height: calc(var(--layout-touch-target) - var(--space-sm));
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.option[aria-checked='true'] .optionIcon {
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.optionText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionLabel {
+  font-size: var(--text-body-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-body-line);
+}
+
+.optionHint {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.check {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--space-sm)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}
