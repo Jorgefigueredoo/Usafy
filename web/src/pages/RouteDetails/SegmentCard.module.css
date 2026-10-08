@@ -31,3 +31,25 @@
   padding: 0;
   list-style: none;
 }
+
+/* Leva ao mapa com este trecho em destaque (mesmo efeito da faixa de risco). */
+.showOnMap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  min-height: calc(var(--layout-touch-target) - var(--space-sm));
+  margin-top: var(--space-md);
+  padding: 0;
+  border: none;
+  border-top: var(--layout-border-width) solid var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-subtitle-weight);
+  cursor: pointer;
+}
+
+.showOnMap svg:last-child {
+  margin-left: auto;
+}
