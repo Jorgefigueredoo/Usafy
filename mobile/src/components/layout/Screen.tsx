@@ -9,10 +9,12 @@ export interface ScreenProps {
   children: ReactNode;
   /** Envolve o conteúdo num ScrollView. Deixe `false` quando a tela já rola sozinha. */
   scrollable?: boolean;
+  /** Conteúdo fixo no rodapé (normalmente a ação principal), ao alcance do polegar. */
+  footer?: ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
 }
 
-export function Screen({ children, scrollable = false, contentStyle }: ScreenProps) {
+export function Screen({ children, scrollable = false, footer, contentStyle }: ScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar style="light" />
@@ -27,6 +29,7 @@ export function Screen({ children, scrollable = false, contentStyle }: ScreenPro
       ) : (
         <View style={[styles.content, styles.grow, contentStyle]}>{children}</View>
       )}
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </SafeAreaView>
   );
 }
@@ -37,10 +40,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
   grow: {
     flexGrow: 1,
+  },
+  footer: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
 });
