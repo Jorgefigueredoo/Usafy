@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
 import { Header } from '@/components/layout';
+import { MapThemePicker } from '@/components/map';
 import { Button, Icon, Text } from '@/components/ui';
 import { useCurrentRoute, useNavigation, useUserLocation } from '@/hooks';
 import { paths } from '@/paths';
@@ -70,6 +71,7 @@ function RouteScreen({ route }: RouteScreenProps) {
             floating
             onBack={() => navigate(paths.home)}
             backLabel="Voltar para a busca"
+            trailing={<MapThemePicker />}
             className={styles.overlayTop}
           />
         )}
