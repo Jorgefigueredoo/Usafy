@@ -73,3 +73,40 @@
   margin-right: calc(-1 * var(--space-sm));
   flex-shrink: 0;
 }
+
+.leading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-icon-md);
+  flex-shrink: 0;
+}
+
+/* Variante inline: linha de um cartão, sem borda própria, rótulo pequeno acima do texto. */
+.inline .control {
+  min-height: calc(var(--layout-touch-target) + var(--space-sm));
+  padding: 0 var(--space-sm) 0 var(--space-md);
+  background: transparent;
+  border: none;
+  transition: background-color 0.15s ease;
+}
+
+.inline .control:focus-within {
+  background: var(--color-overlay);
+}
+
+.stack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inline .input {
+  height: auto;
+  line-height: var(--text-subtitle-line);
+}
+
+.inline .control:focus-within .label {
+  color: var(--color-accent);
+}
