@@ -1,4 +1,5 @@
-import { Card, RiskBadge, RiskBar, Text } from '@/components/ui';
+import { Card, Icon, RiskBadge, RiskBar, Text } from '@/components/ui';
+import { layout } from '@/theme';
 import type { RouteSegment } from '@/types';
 import { formatDistanceMeters, formatScore } from '@/utils/format';
 
@@ -9,9 +10,10 @@ export interface SegmentCardProps {
   segment: RouteSegment;
   /** Posição do trecho no trajeto, começando em 1. */
   position: number;
+  onShowOnMap: () => void;
 }
 
-export function SegmentCard({ segment, position }: SegmentCardProps) {
+export function SegmentCard({ segment, position, onShowOnMap }: SegmentCardProps) {
   return (
     <Card as="li">
       <div className={styles.header}>
@@ -44,6 +46,12 @@ export function SegmentCard({ segment, position }: SegmentCardProps) {
           <FactorRow key={factor.type} factor={factor} />
         ))}
       </ul>
+
+      <button type="button" className={styles.showOnMap} onClick={onShowOnMap}>
+        <Icon name="pin" size={layout.iconSm} />
+        Ver no mapa
+        <Icon name="chevronRight" size={layout.iconSm} />
+      </button>
     </Card>
   );
 }
