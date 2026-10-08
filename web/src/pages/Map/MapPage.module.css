@@ -26,7 +26,8 @@
 .recenter {
   position: absolute;
   left: var(--space-md);
-  bottom: calc(var(--radius-lg) + var(--space-md));
+  /* Acima do logo e da atribuição do Mapbox, que precisam ficar visíveis (termos de uso). */
+  bottom: calc(var(--radius-lg) + var(--space-xxl));
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -57,4 +58,29 @@
   background: var(--color-background);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: 0 calc(-1 * var(--space-xs)) var(--space-lg) var(--color-shadow);
+}
+
+/* Liga/desliga a voz durante a navegação: canto oposto ao "Recentralizar". */
+.voiceToggle {
+  position: absolute;
+  right: var(--space-md);
+  /* Acima do logo e da atribuição do Mapbox, que precisam ficar visíveis (termos de uso). */
+  bottom: calc(var(--radius-lg) + var(--space-xxl));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--layout-touch-target);
+  height: var(--layout-touch-target);
+  padding: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: 0 var(--space-xs) var(--space-md) var(--color-shadow);
+  cursor: pointer;
+}
+
+.voiceToggle[aria-pressed='false'] {
+  color: var(--color-text-secondary);
 }
