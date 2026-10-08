@@ -1,15 +1,81 @@
-.brand {
+.topBar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.brand {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
 }
 
+/* Lembra que as rotas só cobrem a Região Metropolitana do Recife. */
+.region {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-sm);
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-caption-weight);
+  line-height: var(--text-caption-line);
+}
+
+.region svg {
+  color: var(--color-accent);
+}
+
+.highlight {
+  color: var(--color-accent);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: calc(4 * var(--text-caption-tracking));
+}
+
+/* Os três critérios num único cartão, separados por linhas finas. */
 .features {
+  margin: 0;
+  padding: 0 var(--space-md);
+  list-style: none;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+}
+
+.footer {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: var(--space-sm);
+}
+
+/* Entrada em cascata: ilustração, título e critérios sobem um depois do outro. */
+.reveal {
+  opacity: 0;
+  animation: reveal 500ms ease-out forwards;
+}
+
+.revealLate {
+  animation-delay: 150ms;
+}
+
+.revealLast {
+  animation-delay: 300ms;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-md));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
