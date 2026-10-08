@@ -4,20 +4,119 @@
   gap: var(--space-md);
 }
 
+/* Selo verde de "chegou": aparece com um leve salto. */
 .icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-xxl);
-  height: var(--space-xxl);
+  width: calc(var(--space-xxl) + var(--space-sm));
+  height: calc(var(--space-xxl) + var(--space-sm));
   border-radius: var(--radius-full);
   background: var(--risk-low-surface);
+  box-shadow: 0 0 0 var(--space-xs) var(--risk-low-surface);
   color: var(--risk-low-tone);
   flex-shrink: 0;
+  animation: pop 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .texts {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.destination {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Três números da viagem lado a lado. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  border: var(--layout-border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.stat + .stat {
+  border-left: var(--layout-border-width) solid var(--color-border);
+}
+
+.stat dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-caption-weight);
+  line-height: var(--text-caption-line);
+}
+
+.stat dd {
+  margin: 0;
+  font-size: var(--text-subtitle-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-subtitle-line);
+}
+
+/* "Risco moderado" não cabe no tamanho dos números: fica menor. */
+.stat .risk {
+  font-size: var(--text-body-size);
+  line-height: var(--text-subtitle-line);
+}
+
+.low {
+  color: var(--risk-low-tone);
+}
+
+.medium {
+  color: var(--risk-medium-tone);
+}
+
+.high {
+  color: var(--risk-high-tone);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0;
+  color: var(--risk-low-tone);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-caption-weight);
+  line-height: var(--text-caption-line);
+}
+
+.noteWarning {
+  color: var(--risk-medium-tone);
+}
+
+.note svg {
+  flex-shrink: 0;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
